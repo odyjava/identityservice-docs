@@ -29,6 +29,9 @@ h2 .tag{display:inline-block;font-size:.75rem;letter-spacing:.18em;color:var(--b
 .hero .inner{position:relative;z-index:2;padding:24px}
 .hero h1{font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.25;background:linear-gradient(105deg,#fff 20%,var(--brand) 55%,var(--brand2) 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p{color:var(--muted);max-width:640px;margin:20px auto 0;font-size:clamp(1rem,2.2vw,1.15rem)}
+.status-pill{display:inline-flex;align-items:center;gap:8px;margin-bottom:22px;padding:6px 16px;border:1px solid rgba(61,220,151,.4);border-radius:99px;background:rgba(61,220,151,.08);color:var(--ok);font-size:.85rem;font-weight:600;letter-spacing:.03em}
+.status-pill .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(61,220,151,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,151,.5)}70%{box-shadow:0 0 0 10px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
 .hero .cta{margin-top:36px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .btn{display:inline-block;border-radius:12px;padding:12px 26px;font-weight:600;transition:transform .25s ease,box-shadow .25s ease}
 .btn:hover{transform:translateY(-2px)}
@@ -139,6 +142,7 @@ nav .links a:hover{color:var(--ink)}
 <div class="hero">
   <div class="orb a"></div><div class="orb b"></div><div class="orb c"></div>
   <div class="inner">
+    <div class="status-pill"><span class="dot"></span>服務運行中 · Operational</div>
     <h1>一套登入服務<br>守護所有平台的身分</h1>
     <p>Identity Service 是平台級共用認證服務（authN）——任何需要會員註冊與登入的產品，
        都能透過同一套 API 取得安全的帳號、密碼、多因子驗證與 Token 管理能力。</p>

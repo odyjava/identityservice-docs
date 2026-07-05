@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity Service — 平台級共用登入服務</title>
+<meta name="description" content="Identity Service 整體設計、安全規則與 API 說明：一套為多平台提供帳號註冊與登入的共用認證服務。">
+<style>
+:root{
+  --bg:#0b1020;--bg2:#101731;--card:#151f3d;--card2:#1a2647;
+  --ink:#e8edfb;--muted:#9aa7c7;--line:#27345e;
+  --brand:#5b8cff;--brand2:#8f6bff;--ok:#3ddc97;--warn:#ffb84d;--bad:#ff6b81;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;line-height:1.7;overflow-x:hidden}
+a{color:var(--brand);text-decoration:none}
+code{font-family:var(--mono);background:#0d1530;border:1px solid var(--line);border-radius:6px;padding:.1em .45em;font-size:.9em}
+section{max-width:1060px;margin:0 auto;padding:72px 24px}
+h2{font-size:clamp(1.5rem,3.4vw,2.1rem);margin-bottom:8px}
+h2 .tag{display:inline-block;font-size:.75rem;letter-spacing:.18em;color:var(--brand);border:1px solid var(--brand);border-radius:99px;padding:2px 12px;vertical-align:middle;margin-right:12px}
+.sub{color:var(--muted);margin-bottom:36px;max-width:760px}
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.hero .inner{position:relative;z-index:2;padding:24px}
+.hero h1{font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.25;background:linear-gradient(105deg,#fff 20%,var(--brand) 55%,var(--brand2) 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);max-width:640px;margin:20px auto 0;font-size:clamp(1rem,2.2vw,1.15rem)}
+.hero .cta{margin-top:36px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-block;border-radius:12px;padding:12px 26px;font-weight:600;transition:transform .25s ease,box-shadow .25s ease}
+.btn:hover{transform:translateY(-2px)}
+.btn.primary{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 8px 30px rgba(91,140,255,.35)}
+.btn.ghost{border:1px solid var(--line);color:var(--ink)}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;animation:drift 16s ease-in-out infinite alternate}
+.orb.a{width:420px;height:420px;background:#2b4bd8;top:-90px;left:-110px}
+.orb.b{width:360px;height:360px;background:#6b3fd8;bottom:-80px;right:-90px;animation-delay:-6s}
+.orb.c{width:230px;height:230px;background:#1f7d6c;top:52%;left:66%;animation-delay:-11s}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(70px,50px) scale(1.14)}}
+.badge-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.badge{border:1px solid var(--line);background:rgba(21,31,61,.7);border-radius:99px;padding:6px 16px;font-size:.85rem;color:var(--muted);animation:floaty 5s ease-in-out infinite}
+.badge:nth-child(2){animation-delay:-1.4s}.badge:nth-child(3){animation-delay:-2.6s}.badge:nth-child(4){animation-delay:-3.8s}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--muted);font-size:.8rem;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+/* ---------- cards ---------- */
+.grid{display:grid;gap:18px}
+.grid.c3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.grid.c2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:26px;transition:transform .3s ease,border-color .3s ease}
+.card:hover{transform:translateY(-5px);border-color:var(--brand)}
+.card .ico{font-size:1.7rem;margin-bottom:10px;display:block}
+.card h3{font-size:1.08rem;margin-bottom:8px}
+.card p{color:var(--muted);font-size:.93rem}
+/* ---------- architecture diagram ---------- */
+.arch{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;padding:30px 18px;overflow-x:auto}
+.arch svg{display:block;margin:0 auto;max-width:100%}
+.node rect{fill:#0d1530;stroke:var(--line);stroke-width:1.4;rx:12}
+.node.hot rect{stroke:var(--brand)}
+.node text{fill:var(--ink);font-size:14px;font-weight:600}
+.node .small{fill:var(--muted);font-size:11px;font-weight:400}
+.pipe{stroke:var(--brand);stroke-width:2;fill:none;stroke-dasharray:7 7;animation:flow 1.2s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-14}}
+.packet{fill:var(--ok);animation:pkt 3s linear infinite}
+@keyframes pkt{0%{opacity:0}8%{opacity:1}92%{opacity:1}100%{opacity:0}}
+/* ---------- login flow steps ---------- */
+.flow{display:grid;gap:14px;counter-reset:step}
+.step{display:flex;gap:18px;align-items:flex-start;background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:14px;padding:20px 22px;position:relative;overflow:hidden}
+.step::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(91,140,255,.08) 50%,transparent 70%);transform:translateX(-100%);}
+.step.in::after{animation:sheen 1.6s ease .2s forwards}
+@keyframes sheen{to{transform:translateX(100%)}}
+.step .n{counter-increment:step;flex:0 0 44px;height:44px;border-radius:50%;background:linear-gradient(120deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.05rem}
+.step .n::before{content:counter(step)}
+.step h4{margin-bottom:4px}
+.step p{color:var(--muted);font-size:.92rem}
+.step .pill{display:inline-block;margin-top:8px;font-family:var(--mono);font-size:.78rem;border:1px solid var(--line);border-radius:8px;padding:2px 10px;color:var(--brand)}
+.fork{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-left:62px}
+@media(max-width:640px){.fork{margin-left:0}}
+.fork .step .n{background:linear-gradient(120deg,#1f7d6c,var(--ok));font-size:.8rem}
+.fork .step:nth-child(1) .n::before{content:"A"}
+.fork .step:nth-child(2) .n::before{content:"B"}
+/* ---------- token rotation animation ---------- */
+.rotate-demo{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;padding:34px 26px;text-align:center}
+.tok-row{display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap;min-height:86px}
+.tok{font-family:var(--mono);font-size:.86rem;border-radius:12px;padding:12px 20px;border:1.5px solid var(--line);position:relative;transition:all .6s ease}
+.tok.access{border-color:var(--brand);color:var(--brand)}
+.tok.fresh{border-color:var(--ok);color:var(--ok)}
+.tok.dead{border-color:var(--bad);color:var(--bad);text-decoration:line-through;opacity:.55;transform:scale(.92)}
+.arrow{color:var(--muted);font-size:1.4rem}
+.rotate-caption{color:var(--muted);font-size:.9rem;margin-top:18px;min-height:2.4em}
+.rotate-alarm{margin-top:6px;font-weight:700;color:var(--bad);opacity:0;transition:opacity .5s ease}
+.rotate-alarm.on{opacity:1;animation:shake .4s ease}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+/* ---------- rules ---------- */
+.rule{border-left:3px solid var(--brand);padding:4px 0 4px 18px;margin-bottom:22px}
+.rule h4{margin-bottom:4px}
+.rule p{color:var(--muted);font-size:.93rem}
+/* ---------- api table ---------- */
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:.8rem;letter-spacing:.08em}
+td code{white-space:nowrap}
+.m{font-family:var(--mono);font-weight:700;font-size:.78rem;border-radius:6px;padding:2px 8px}
+.m.post{background:rgba(61,220,151,.14);color:var(--ok)}
+.m.get{background:rgba(91,140,255,.14);color:var(--brand)}
+.m.patch{background:rgba(255,184,77,.14);color:var(--warn)}
+.lock{font-size:.75rem;color:var(--muted)}
+.tbl-wrap{overflow-x:auto;background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:8px 4px}
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;color:var(--muted);font-size:.85rem}
+/* ---------- nav ---------- */
+nav{position:fixed;top:0;left:0;right:0;z-index:10;background:rgba(11,16,32,.8);backdrop-filter:blur(10px);border-bottom:1px solid transparent;transition:border-color .3s}
+nav.scrolled{border-bottom-color:var(--line)}
+nav .wrap{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 24px}
+nav .logo{font-weight:800;letter-spacing:.02em}
+nav .logo span{color:var(--brand)}
+nav .links{display:flex;gap:22px;font-size:.88rem}
+nav .links a{color:var(--muted);transition:color .2s}
+nav .links a:hover{color:var(--ink)}
+@media(max-width:720px){nav .links{display:none}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="wrap">
+    <div class="logo">Identity<span>Service</span></div>
+    <div class="links">
+      <a href="#arch">架構</a><a href="#flow">登入流程</a><a href="#token">Token 設計</a>
+      <a href="#rules">安全規則</a><a href="#api">API 一覽</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <div class="orb a"></div><div class="orb b"></div><div class="orb c"></div>
+  <div class="inner">
+    <h1>一套登入服務<br>守護所有平台的身分</h1>
+    <p>Identity Service 是平台級共用認證服務（authN）——任何需要會員註冊與登入的產品，
+       都能透過同一套 API 取得安全的帳號、密碼、多因子驗證與 Token 管理能力。</p>
+    <div class="cta">
+      <a class="btn primary" href="#flow">看登入流程動畫</a>
+      <a class="btn ghost" href="#api">API 一覽</a>
+    </div>
+    <div class="badge-row">
+      <div class="badge">🔐 Argon2id 密碼雜湊</div>
+      <div class="badge">📱 TOTP 多因子驗證</div>
+      <div class="badge">🔄 Refresh 輪替防盜用</div>
+      <div class="badge">🏢 多平台租戶隔離</div>
+    </div>
+  </div>
+  <div class="scroll-hint">▼ 往下捲動</div>
+</div>
+
+<!-- ============ WHAT ============ -->
+<section id="what">
+  <h2 class="rv"><span class="tag">WHAT</span>這是什麼服務？</h2>
+  <p class="sub rv">把「登入」這件事從每個產品中抽出來，集中做對、做安全。</p>
+  <div class="grid c3">
+    <div class="card rv"><span class="ico">🎯</span><h3>唯一的認證權威</h3>
+      <p>帳號、密碼、MFA、Token 簽發與撤銷全部集中在這裡。各產品系統不碰密碼，只驗證這裡簽發的 Token。</p></div>
+    <div class="card rv"><span class="ico">🏢</span><h3>平台級多租戶</h3>
+      <p>每個接入的產品是一個獨立「平台」（realm），帳號、簽章金鑰、政策完全隔離——A 平台的 Token 在 B 平台一定無效。</p></div>
+    <div class="card rv"><span class="ico">🧩</span><h3>平台內再分租戶</h3>
+      <p>平台之內還能有自己的命名空間（tenant，例如商城裡的各商家），同名帳號在不同租戶間互不衝突。</p></div>
+    <div class="card rv"><span class="ico">📜</span><h3>凍結契約驅動</h3>
+      <p>API 依消費方凍結的 OpenAPI 契約實作，並以黑箱契約測試持續守護——行為就是文件，文件就是行為。</p></div>
+    <div class="card rv"><span class="ico">⚡</span><h3>Serverless 架構</h3>
+      <p>以 AWS Lambda 承載、按用量計費、自動擴縮，平時近乎零成本，尖峰不用擔心容量。</p></div>
+    <div class="card rv"><span class="ico">🌐</span><h3>標準 JWT 生態</h3>
+      <p>簽發 RS256 JWT，公鑰經 JWKS 端點公開，任何服務都能本地驗簽，不需回呼登入服務。</p></div>
+  </div>
+</section>
+
+<!-- ============ ARCH ============ -->
+<section id="arch">
+  <h2 class="rv"><span class="tag">ARCH</span>整體架構</h2>
+  <p class="sub rv">請求從使用者裝置出發，經過邊緣網路與 API 閘道，由無伺服器函式處理，資料落在關聯式資料庫。</p>
+  <div class="arch rv">
+    <svg viewBox="0 0 960 210" xmlns="http://www.w3.org/2000/svg" aria-label="架構圖">
+      <g class="node"><rect x="10" y="70" width="150" height="70"/><text x="85" y="100" text-anchor="middle">使用者 / 系統</text><text x="85" y="122" text-anchor="middle" class="small">瀏覽器・App・S2S</text></g>
+      <path class="pipe" d="M160 105 H 235"/>
+      <g class="node"><rect x="235" y="70" width="150" height="70"/><text x="310" y="100" text-anchor="middle">Cloudflare DNS</text><text x="310" y="122" text-anchor="middle" class="small">identity.lifeintent.app</text></g>
+      <path class="pipe" d="M385 105 H 460"/>
+      <g class="node"><rect x="460" y="70" width="150" height="70"/><text x="535" y="100" text-anchor="middle">API Gateway</text><text x="535" y="122" text-anchor="middle" class="small">TLS・路由</text></g>
+      <path class="pipe" d="M610 105 H 685"/>
+      <g class="node hot"><rect x="685" y="70" width="130" height="70"/><text x="750" y="100" text-anchor="middle">Lambda</text><text x="750" y="122" text-anchor="middle" class="small">認證核心（Go）</text></g>
+      <path class="pipe" d="M815 105 H 890"/>
+      <g class="node"><rect x="890" y="70" width="60" height="70" /><text x="920" y="100" text-anchor="middle">DB</text><text x="920" y="122" text-anchor="middle" class="small">加密</text></g>
+      <circle class="packet" r="5"><animateMotion dur="3s" repeatCount="indefinite" path="M160 105 H 890"/></circle>
+      <text x="480" y="30" text-anchor="middle" fill="#9aa7c7" font-size="12">— 全程 HTTPS・私鑰與密碼永不離開伺服器端 —</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ============ LOGIN FLOW ============ -->
+<section id="flow">
+  <h2 class="rv"><span class="tag">FLOW</span>登入流程</h2>
+  <p class="sub rv">一次登入在幕後發生的事——每一步都有安全檢查，任何一關不過就停止。</p>
+  <div class="flow">
+    <div class="step rv"><div class="n"></div><div>
+      <h4>解析平台身分</h4><p>先確認請求屬於哪個平台（網域對映或 header），未知或停權的平台直接拒絕——連帳號驗證都不會開始。</p>
+      <span class="pill">AUTH_PLATFORM_UNKNOWN</span></div></div>
+    <div class="step rv"><div class="n"></div><div>
+      <h4>驗證帳號密碼</h4><p>密碼以 Argon2id 雜湊比對（抗 GPU 暴力破解）。「帳號不存在」與「密碼錯誤」回應完全相同，外部無法探測哪些帳號存在。</p>
+      <span class="pill">AUTH_INVALID_CREDENTIALS</span></div></div>
+    <div class="step rv"><div class="n"></div><div>
+      <h4>檢查帳號狀態與鎖定</h4><p>停用的帳號一律拒絕；連續失敗達門檻會暫時鎖定一段時間，即使之後輸入正確密碼也要等鎖定解除。</p>
+      <span class="pill">AUTH_ACCOUNT_LOCKED</span></div></div>
+    <div class="step rv"><div class="n"></div><div>
+      <h4>分流：是否啟用 MFA？</h4><p>依帳號的多因子驗證設定走向不同結局。</p></div></div>
+    <div class="fork">
+      <div class="step rv"><div class="n"></div><div>
+        <h4>未啟用 → 直接發 Token</h4><p>簽發短效 Access Token（JWT）與長效 Refresh Token，登入完成。</p></div></div>
+      <div class="step rv"><div class="n"></div><div>
+        <h4>已啟用 → 回傳挑戰票</h4><p>先不發 Token，回一張 5 分鐘、一次性的 <code>mfa_token</code>；輸入手機驗證器的 6 位數（或備援碼）通過後才簽發 Token。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TOKEN ============ -->
+<section id="token">
+  <h2 class="rv"><span class="tag">TOKEN</span>Token 設計與輪替</h2>
+  <p class="sub rv">雙 Token 制：短效 Access 負責存取、長效 Refresh 負責續期——而 Refresh 每用一次就換一張。</p>
+  <div class="grid c2" style="margin-bottom:22px">
+    <div class="card rv"><span class="ico">🎫</span><h3>Access Token（JWT）</h3>
+      <p>效期以「分鐘」計（一般會員較長、管理者更短）。內含簽發者、平台、帳號、租戶與類型等聲明，以 RS256 私鑰簽章；任何服務用公開的 JWKS 公鑰即可本地驗證，偽造與竄改必被識破。</p></div>
+    <div class="card rv"><span class="ico">🔄</span><h3>Refresh Token（不透明）</h3>
+      <p>約 30 天滑動效期的隨機字串，伺服器只儲存它的加鹽雜湊——就算資料庫外洩也拿不到可用的 Token。它是唯一的續期機制，且每次使用即輪替作廢。</p></div>
+  </div>
+  <div class="rotate-demo rv">
+    <div class="tok-row" id="tokRow">
+      <div class="tok fresh" id="tokOld">rt_A1b2…（目前）</div>
+      <div class="arrow">→</div>
+      <div class="tok access" id="tokAcc">新 Access Token</div>
+      <div class="arrow">＋</div>
+      <div class="tok" id="tokNew" style="opacity:.35">rt_C3d4…（新）</div>
+    </div>
+    <div class="rotate-caption" id="rotCap">每次「換發」：舊 Refresh 立即作廢，取得新 Access ＋ 新 Refresh。</div>
+    <div class="rotate-alarm" id="rotAlarm">⚠ 偵測到已作廢的 Token 被重用 → 判定遭竊，該帳號全部憑證即刻撤銷！</div>
+  </div>
+</section>
+
+<!-- ============ RULES ============ -->
+<section id="rules">
+  <h2 class="rv"><span class="tag">RULES</span>安全規則</h2>
+  <p class="sub rv">這些規則寫死在程式與測試裡，不是紙上原則。</p>
+  <div class="grid c2">
+    <div>
+      <div class="rule rv"><h4>密碼永不明文儲存</h4><p>採 Argon2id（記憶體硬化雜湊）搭配隨機鹽值；伺服器也「不知道」你的密碼。</p></div>
+      <div class="rule rv"><h4>帳號不可枚舉</h4><p>登入失敗不透露帳號是否存在；登出對不存在的 Token 也回成功，不給攻擊者任何探測訊號。</p></div>
+      <div class="rule rv"><h4>暴力破解防護</h4><p>連續失敗自動觸發暫時鎖定；解鎖前正確密碼也無法登入。</p></div>
+      <div class="rule rv"><h4>Token 竊用即斷</h4><p>已輪替的 Refresh Token 再次出現，視為憑證外洩：整個帳號的 Refresh 全部撤銷、尚未過期的 Access 進黑名單。</p></div>
+    </div>
+    <div>
+      <div class="rule rv"><h4>機敏資料加密落地</h4><p>簽章私鑰與 MFA 密鑰以 AES-256-GCM 加密後才寫入資料庫；Refresh Token 與備援碼只存雜湊。</p></div>
+      <div class="rule rv"><h4>一次性憑證</h4><p>MFA 挑戰票（5 分鐘）與備援碼皆一次性，用過即廢；備援碼明碼只在啟用當下顯示一次。</p></div>
+      <div class="rule rv"><h4>平台完全隔離</h4><p>每平台獨立簽章金鑰與帳號空間；系統對系統的 API Key 也綁定單一平台，跨平台操作一律拒絕。</p></div>
+      <div class="rule rv"><h4>嚴格輸入驗證</h4><p>所有請求欄位嚴格檢查，未知欄位直接拒絕；錯誤訊息絕不洩漏內部細節，僅附追蹤碼供查詢。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MFA ============ -->
+<section id="mfa">
+  <h2 class="rv"><span class="tag">MFA</span>多因子驗證（TOTP）</h2>
+  <p class="sub rv">標準 RFC 6238 時間動態碼，與 Google Authenticator 等驗證器 App 相容。</p>
+  <div class="grid c3">
+    <div class="card rv"><span class="ico">①</span><h3>綁定</h3><p>登入後啟動綁定，取得 QR Code 用驗證器 App 掃描；此時尚未生效。</p></div>
+    <div class="card rv"><span class="ico">②</span><h3>啟用</h3><p>輸入 App 上的第一組 6 位數完成啟用，同時取得 10 組一次性備援碼（請立刻收好，之後不再顯示）。</p></div>
+    <div class="card rv"><span class="ico">③</span><h3>日常登入</h3><p>密碼通過後多一步：輸入當下的 6 位數動態碼（允許 ±30 秒時鐘誤差）。</p></div>
+    <div class="card rv"><span class="ico">🆘</span><h3>手機遺失</h3><p>用備援碼代替動態碼登入，每組只能用一次；登入後建議重新綁定新裝置。</p></div>
+    <div class="card rv"><span class="ico">🔓</span><h3>停用</h3><p>為防盜用，關閉 MFA 需同時提供密碼＋當下動態碼重新驗證身分。</p></div>
+    <div class="card rv"><span class="ico">🔏</span><h3>密鑰保護</h3><p>TOTP 密鑰加密儲存、絕不寫入日誌；備援碼僅存雜湊。</p></div>
+  </div>
+</section>
+
+<!-- ============ API ============ -->
+<section id="api">
+  <h2 class="rv"><span class="tag">API</span>端點一覽</h2>
+  <p class="sub rv">Base URL：<code>https://identity.lifeintent.app/v1</code>　全部走 JSON over HTTPS。</p>
+  <div class="tbl-wrap rv">
+    <table>
+      <thead><tr><th>方法</th><th>路徑</th><th>用途</th><th>認證</th></tr></thead>
+      <tbody>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/login</code></td><td>帳密登入（依 MFA 設定回 Token 或挑戰票）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/refresh</code></td><td>Token 換發（輪替），唯一續期機制</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/logout</code></td><td>登出並撤銷 Refresh Token</td><td class="lock">—</td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/.well-known/jwks.json</code></td><td>公開驗章公鑰（JWKS）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/setup</code></td><td>開始綁定 MFA（產生 QR）</td><td class="lock">🔒 JWT</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/activate</code></td><td>驗第一碼啟用，發備援碼</td><td class="lock">🔒 JWT</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/verify</code></td><td>登入第二步：驗動態碼發 Token</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/recovery</code></td><td>備援碼登入（手機遺失）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/disable</code></td><td>關閉 MFA（需密碼＋動態碼）</td><td class="lock">🔒 JWT</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/internal/accounts</code></td><td>建立帳號（限平台核心系統）</td><td class="lock">🔑 API Key</td></tr>
+        <tr><td><span class="m patch">PATCH</span></td><td><code>/internal/accounts/{sub}</code></td><td>停用／重設密碼／緊急撤銷</td><td class="lock">🔑 API Key</td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/livez</code>・<code>/readyz</code>（根層）</td><td>服務健康檢查</td><td class="lock">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="sub rv" style="margin-top:22px">錯誤一律回統一格式：<code>{"error":{"code","id","message","trace_id"}}</code>，
+     訊息依 <code>Accept-Language</code> 回覆中文或英文，並附追蹤碼方便回報問題。</p>
+</section>
+
+<footer>
+  Identity Service · 平台級共用認證服務 · 本頁為公開說明文件，不含任何憑證或內部資訊<br>
+  技術棧：Go · AWS Lambda · PostgreSQL · RS256 JWT · Argon2id · RFC 6238 TOTP
+</footer>
+
+<script>
+// scroll reveal
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.15});
+document.querySelectorAll('.rv,.step').forEach(el=>io.observe(el));
+// nav border
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>30),{passive:true});
+// token rotation loop
+const tokOld=document.getElementById('tokOld'),tokNew=document.getElementById('tokNew'),
+      tokAcc=document.getElementById('tokAcc'),cap=document.getElementById('rotCap'),alarm=document.getElementById('rotAlarm');
+function cycle(){
+  // phase 1: normal state
+  tokOld.className='tok fresh';tokOld.textContent='rt_A1b2…（目前）';
+  tokNew.style.opacity='.35';tokNew.className='tok';tokNew.textContent='rt_C3d4…（新）';
+  tokAcc.style.opacity='.35';alarm.classList.remove('on');
+  cap.textContent='使用者以目前的 Refresh Token 請求換發…';
+  setTimeout(()=>{ // phase 2: rotate
+    tokOld.className='tok dead';tokOld.textContent='rt_A1b2…（已作廢）';
+    tokNew.style.opacity='1';tokNew.className='tok fresh';
+    tokAcc.style.opacity='1';
+    cap.textContent='換發成功：舊 Refresh 作廢，取得新 Access ＋ 新 Refresh。';
+  },2600);
+  setTimeout(()=>{ // phase 3: reuse attack
+    cap.textContent='攻擊者嘗試重放「已作廢」的舊 Refresh Token——';
+    alarm.classList.add('on');
+    tokNew.className='tok dead';tokNew.textContent='rt_C3d4…（連坐撤銷）';
+  },5600);
+  setTimeout(cycle,9400);
+}
+const rotIO=new IntersectionObserver(es=>{if(es[0].isIntersecting){cycle();rotIO.disconnect();}},{threshold:.4});
+rotIO.observe(document.getElementById('tokRow'));
+</script>
+</body>
+</html>

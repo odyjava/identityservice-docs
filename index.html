@@ -39,6 +39,7 @@ h2 .tag{display:inline-block;font-size:.75rem;letter-spacing:.18em;color:var(--b
 .orb.b{width:360px;height:360px;background:#6b3fd8;bottom:-80px;right:-90px;animation-delay:-6s}
 .orb.c{width:230px;height:230px;background:#1f7d6c;top:52%;left:66%;animation-delay:-11s}
 @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(70px,50px) scale(1.14)}}
+.counter{font-size:2.4rem;font-weight:800;background:linear-gradient(120deg,var(--brand),var(--brand2));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
 .badge-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px}
 .badge{border:1px solid var(--line);background:rgba(21,31,61,.7);border-radius:99px;padding:6px 16px;font-size:.85rem;color:var(--muted);animation:floaty 5s ease-in-out infinite}
 .badge:nth-child(2){animation-delay:-1.4s}.badge:nth-child(3){animation-delay:-2.6s}.badge:nth-child(4){animation-delay:-3.8s}
@@ -129,7 +130,7 @@ nav .links a:hover{color:var(--ink)}
     <div class="logo">Identity<span>Service</span></div>
     <div class="links">
       <a href="#arch">架構</a><a href="#flow">登入流程</a><a href="#token">Token 設計</a>
-      <a href="#rules">安全規則</a><a href="#api">API 一覽</a>
+      <a href="#rules">安全規則</a><a href="#insight">監控分析</a><a href="#api">API 一覽</a>
     </div>
   </div>
 </nav>
@@ -278,6 +279,33 @@ nav .links a:hover{color:var(--ink)}
   </div>
 </section>
 
+<!-- ============ INSIGHT / ANALYTICS ============ -->
+<section id="insight">
+  <h2 class="rv"><span class="tag">INSIGHT</span>監控與分析</h2>
+  <p class="sub rv">服務內建營運儀表板：即時掌握使用量、註冊成長、活躍度與各接入平台的健康——並以隱私優先的方式記錄。</p>
+  <div class="grid c3" style="margin-bottom:22px">
+    <div class="card rv" style="text-align:center">
+      <span class="ico">📈</span><div class="counter" data-to="6" data-suffix=""></div>
+      <h3 style="margin-top:4px">分析維度</h3><p>使用量、註冊、活躍度、廠商、使用分析、安全事件。</p></div>
+    <div class="card rv" style="text-align:center">
+      <span class="ico">🗓️</span><div class="counter" data-to="180" data-suffix=" 天"></div>
+      <h3 style="margin-top:4px">事件保留</h3><p>逾期資料自動歸檔至冷儲存後從資料庫清除，兼顧查詢效能與長期留存。</p></div>
+    <div class="card rv" style="text-align:center">
+      <span class="ico">🔒</span><div class="counter" data-to="100" data-suffix="%"></div>
+      <h3 style="margin-top:4px">隱私設計</h3><p>只記錄雜湊後的來源位址、不存明文，符合最小蒐集原則。</p></div>
+  </div>
+  <div class="grid c2">
+    <div class="card rv"><span class="ico">🧭</span><h3>看得懂的營運指標</h3>
+      <p>累計與每日新註冊、DAU／WAU／MAU 活躍度、登入成功率、有效工作階段、MFA 採用率、各平台排行——一頁掌握平台成長與健康。</p></div>
+    <div class="card rv"><span class="ico">🛡️</span><h3>安全與濫用洞察</h3>
+      <p>帳號鎖定、憑證盜用偵測、MFA 驗證失敗等趨勢即時呈現，異常一眼看見。</p></div>
+    <div class="card rv"><span class="ico">🏢</span><h3>多平台分別檢視</h3>
+      <p>可跨全平台總覽，也能鑽取單一接入平台的完整分析，資料嚴格依平台隔離。</p></div>
+    <div class="card rv"><span class="ico">👁️</span><h3>唯讀、不碰帳號</h3>
+      <p>儀表板僅提供分析，不具備任何帳號異動能力——降低後台成為攻擊目標的風險。管理者本身也受獨立空間與多因子驗證保護。</p></div>
+  </div>
+</section>
+
 <!-- ============ API ============ -->
 <section id="api">
   <h2 class="rv"><span class="tag">API</span>端點一覽</h2>
@@ -307,7 +335,7 @@ nav .links a:hover{color:var(--ink)}
 
 <footer>
   Identity Service · 平台級共用認證服務 · 本頁為公開說明文件，不含任何憑證或內部資訊<br>
-  技術棧：Go · AWS Lambda · PostgreSQL · RS256 JWT · Argon2id · RFC 6238 TOTP
+  技術棧：Go · AWS Lambda · PostgreSQL · RS256 JWT · Argon2id · RFC 6238 TOTP · 內建營運分析
 </footer>
 
 <script>
@@ -317,6 +345,17 @@ document.querySelectorAll('.rv,.step').forEach(el=>io.observe(el));
 // nav border
 const nav=document.getElementById('nav');
 addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>30),{passive:true});
+// count-up for analytics section
+const countIO=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;
+  const el=e.target,to=+el.dataset.to,suf=el.dataset.suffix||'';
+  const start=performance.now(),dur=1400;
+  (function tick(t){const p=Math.min((t-start)/dur,1);
+    el.textContent=Math.round(to*(1-Math.pow(1-p,3)))+suf;
+    if(p<1)requestAnimationFrame(tick);})(start);
+  countIO.unobserve(el);
+}),{threshold:.6});
+document.querySelectorAll('.counter').forEach(el=>countIO.observe(el));
 // token rotation loop
 const tokOld=document.getElementById('tokOld'),tokNew=document.getElementById('tokNew'),
       tokAcc=document.getElementById('tokAcc'),cap=document.getElementById('rotCap'),alarm=document.getElementById('rotAlarm');

@@ -43,6 +43,26 @@ h2 .tag{display:inline-block;font-size:.75rem;letter-spacing:.18em;color:var(--b
 .orb.c{width:230px;height:230px;background:#1f7d6c;top:52%;left:66%;animation-delay:-11s}
 @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(70px,50px) scale(1.14)}}
 .counter{font-size:2.4rem;font-weight:800;background:linear-gradient(120deg,var(--brand),var(--brand2));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+/* sequence diagrams */
+.seq{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:22px 14px;margin-bottom:20px;overflow-x:auto}
+.seq h3{font-size:1.05rem;margin:0 8px 6px;display:flex;align-items:center;gap:10px}
+.seq h3 .num{flex:0 0 30px;height:30px;border-radius:50%;background:linear-gradient(120deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700}
+.seq .cap{color:var(--muted);font-size:.86rem;margin:0 8px 14px}
+.seq svg{display:block;margin:0 auto;min-width:600px}
+.life{stroke:var(--line);stroke-width:1.4;stroke-dasharray:3 6}
+.actor rect{fill:#0d1530;stroke:var(--line)}
+.actor.svc rect{stroke:var(--brand)}
+.actor text{fill:var(--ink);font-size:12.5px;font-weight:600}
+.req{stroke:var(--brand);stroke-width:1.8;fill:none;stroke-dasharray:7 6;animation:mflow 1s linear infinite}
+.res{stroke:var(--ok);stroke-width:1.8;fill:none;stroke-dasharray:7 6;animation:mflowr 1s linear infinite}
+@keyframes mflow{to{stroke-dashoffset:-13}}
+@keyframes mflowr{to{stroke-dashoffset:13}}
+.ah-req{fill:var(--brand)}.ah-res{fill:var(--ok)}
+.mlabel{font-family:var(--mono);font-size:12px;font-weight:700}
+.mlabel.q{fill:var(--brand)}.mlabel.r{fill:var(--ok)}
+.mnote{fill:var(--muted);font-size:10.5px}
+.mbranch{fill:var(--warn);font-size:11px;font-weight:700}
+.pkt2{fill:#fff}
 .badge-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px}
 .badge{border:1px solid var(--line);background:rgba(21,31,61,.7);border-radius:99px;padding:6px 16px;font-size:.85rem;color:var(--muted);animation:floaty 5s ease-in-out infinite}
 .badge:nth-child(2){animation-delay:-1.4s}.badge:nth-child(3){animation-delay:-2.6s}.badge:nth-child(4){animation-delay:-3.8s}
@@ -133,7 +153,7 @@ nav .links a:hover{color:var(--ink)}
     <div class="logo">Identity<span>Service</span></div>
     <div class="links">
       <a href="#arch">架構</a><a href="#flow">登入流程</a><a href="#token">Token 設計</a>
-      <a href="#rules">安全規則</a><a href="#insight">監控分析</a><a href="#api">API 一覽</a>
+      <a href="#rules">安全規則</a><a href="#integrate">調用流程</a><a href="#insight">監控分析</a><a href="#api">API 一覽</a>
     </div>
   </div>
 </nav>
@@ -281,6 +301,102 @@ nav .links a:hover{color:var(--ink)}
     <div class="card rv"><span class="ico">🔓</span><h3>停用</h3><p>為防盜用，關閉 MFA 需同時提供密碼＋當下動態碼重新驗證身分。</p></div>
     <div class="card rv"><span class="ico">🔏</span><h3>密鑰保護</h3><p>TOTP 密鑰加密儲存、絕不寫入日誌；備援碼僅存雜湊。</p></div>
   </div>
+</section>
+
+<!-- ============ INTEGRATE / CALL FLOW ============ -->
+<section id="integrate">
+  <h2 class="rv"><span class="tag">HOW-TO</span>如何調用</h2>
+  <p class="sub rv">接入平台實際的 API 呼叫順序——藍色為請求、綠色為回應，虛線流動代表資料傳輸方向。</p>
+
+  <!-- 1. 註冊帳號 -->
+  <div class="seq rv">
+    <h3><span class="num">1</span>註冊帳號（你的後端 → S2S）</h3>
+    <p class="cap">在你的會員註冊流程中，由後端以 S2S API Key 建立帳號並取回 <code>sub</code>。</p>
+    <svg viewBox="0 0 660 180" xmlns="http://www.w3.org/2000/svg" aria-label="註冊流程">
+      <g class="actor"><rect x="16" y="12" width="170" height="40" rx="10"/><text x="101" y="37" text-anchor="middle">你的後端服務</text></g>
+      <g class="actor svc"><rect x="474" y="12" width="170" height="40" rx="10"/><text x="559" y="37" text-anchor="middle">Identity Service</text></g>
+      <line class="life" x1="101" y1="52" x2="101" y2="172"/>
+      <line class="life" x1="559" y1="52" x2="559" y2="172"/>
+      <!-- req -->
+      <text class="mlabel q" x="330" y="82" text-anchor="middle">POST /v1/internal/accounts</text>
+      <text class="mnote" x="330" y="97" text-anchor="middle">Authorization: Bearer sk_… · X-Session-Platform-Code · {username, password, type, tenant}</text>
+      <line class="req" x1="101" y1="106" x2="551" y2="106"/>
+      <polygon class="ah-req" points="551,106 541,101 541,111"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" repeatCount="indefinite" path="M101 106 H551"/></circle>
+      <!-- res -->
+      <text class="mlabel r" x="330" y="140" text-anchor="middle">201 { data: { sub: "acc_…" } }</text>
+      <text class="mnote" x="330" y="155" text-anchor="middle">存下 sub，作為與你會員資料的關聯鍵（重複供應回 409）</text>
+      <line class="res" x1="559" y1="164" x2="109" y2="164"/>
+      <polygon class="ah-res" points="109,164 119,159 119,169"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite" path="M559 164 H109"/></circle>
+    </svg>
+  </div>
+
+  <!-- 2. 使用者登入（含 MFA 分支） -->
+  <div class="seq rv">
+    <h3><span class="num">2</span>使用者登入（含 MFA 分支）</h3>
+    <p class="cap">先呼叫登入；若帳號已啟用 MFA，會回暫態挑戰票，需再驗一次動態碼才發 token。</p>
+    <svg viewBox="0 0 660 288" xmlns="http://www.w3.org/2000/svg" aria-label="登入流程">
+      <g class="actor"><rect x="16" y="12" width="170" height="40" rx="10"/><text x="101" y="37" text-anchor="middle">使用者 / 前端</text></g>
+      <g class="actor svc"><rect x="474" y="12" width="170" height="40" rx="10"/><text x="559" y="37" text-anchor="middle">Identity Service</text></g>
+      <line class="life" x1="101" y1="52" x2="101" y2="280"/>
+      <line class="life" x1="559" y1="52" x2="559" y2="280"/>
+      <!-- login req -->
+      <text class="mlabel q" x="330" y="78" text-anchor="middle">POST /v1/auth/login</text>
+      <text class="mnote" x="330" y="93" text-anchor="middle">X-Session-Platform-Code · {username, password, tenant}</text>
+      <line class="req" x1="101" y1="102" x2="551" y2="102"/>
+      <polygon class="ah-req" points="551,102 541,97 541,107"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" repeatCount="indefinite" path="M101 102 H551"/></circle>
+      <!-- branch A: no MFA -->
+      <text class="mbranch" x="330" y="132" text-anchor="middle">分支 A · 未啟用 MFA → 直接發 token</text>
+      <text class="mlabel r" x="330" y="150" text-anchor="middle">200 { access_token, refresh_token, expires_in }</text>
+      <line class="res" x1="559" y1="160" x2="109" y2="160"/>
+      <polygon class="ah-res" points="109,160 119,155 119,165"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite" path="M559 160 H109"/></circle>
+      <!-- branch B: MFA -->
+      <text class="mbranch" x="330" y="190" text-anchor="middle">分支 B · 已啟用 MFA → 回挑戰票</text>
+      <text class="mlabel r" x="330" y="207" text-anchor="middle">200 { mfa_required: true, mfa_token }</text>
+      <line class="res" x1="559" y1="216" x2="109" y2="216"/>
+      <polygon class="ah-res" points="109,216 119,211 119,221"/>
+      <text class="mlabel q" x="330" y="243" text-anchor="middle">POST /v1/auth/mfa/verify</text>
+      <text class="mnote" x="330" y="257" text-anchor="middle">{mfa_token, code}（驗證器 6 位數）→ 回 200 token</text>
+      <line class="req" x1="101" y1="266" x2="551" y2="266"/>
+      <polygon class="ah-req" points="551,266 541,261 541,271"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="1.4s" repeatCount="indefinite" path="M101 266 H551"/></circle>
+    </svg>
+  </div>
+
+  <!-- 3. 驗證與續期 -->
+  <div class="seq rv">
+    <h3><span class="num">3</span>驗證 Token 與續期</h3>
+    <p class="cap">你的後端用公鑰本地驗簽（不需回呼）；access 到期前用 refresh 換發新的一組。</p>
+    <svg viewBox="0 0 660 232" xmlns="http://www.w3.org/2000/svg" aria-label="驗證與續期流程">
+      <g class="actor"><rect x="16" y="12" width="170" height="40" rx="10"/><text x="101" y="37" text-anchor="middle">你的後端服務</text></g>
+      <g class="actor svc"><rect x="474" y="12" width="170" height="40" rx="10"/><text x="559" y="37" text-anchor="middle">Identity Service</text></g>
+      <line class="life" x1="101" y1="52" x2="101" y2="224"/>
+      <line class="life" x1="559" y1="52" x2="559" y2="224"/>
+      <!-- jwks -->
+      <text class="mlabel q" x="330" y="78" text-anchor="middle">GET /v1/.well-known/jwks.json</text>
+      <line class="req" x1="101" y1="88" x2="551" y2="88"/>
+      <polygon class="ah-req" points="551,88 541,83 541,93"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" repeatCount="indefinite" path="M101 88 H551"/></circle>
+      <text class="mlabel r" x="330" y="116" text-anchor="middle">200 公鑰（RS256）→ 本地驗簽 access JWT</text>
+      <text class="mnote" x="330" y="130" text-anchor="middle">驗 iss / aud / exp，只接受 RS256；此後不需再呼叫本服務</text>
+      <line class="res" x1="559" y1="140" x2="109" y2="140"/>
+      <polygon class="ah-res" points="109,140 119,135 119,145"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite" path="M559 140 H109"/></circle>
+      <!-- refresh -->
+      <text class="mbranch" x="330" y="170" text-anchor="middle">access 到期時</text>
+      <text class="mlabel q" x="330" y="188" text-anchor="middle">POST /v1/auth/refresh { refresh_token }</text>
+      <line class="req" x1="101" y1="198" x2="551" y2="198"/>
+      <polygon class="ah-req" points="551,198 541,193 541,203"/>
+      <text class="mnote" x="330" y="220" text-anchor="middle">回新 access + 新 refresh（舊 refresh 立即作廢，只保留最新一張）</text>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="1.4s" repeatCount="indefinite" path="M101 198 H551"/></circle>
+    </svg>
+  </div>
+
+  <p class="sub rv" style="margin-top:6px">完整欄位、錯誤碼與可複製的 curl 範例，見
+    <a href="https://raw.githubusercontent.com/odyjava/identityservice-docs/main/INTEGRATION.md" target="_blank" rel="noopener">整合指南</a>。</p>
 </section>
 
 <!-- ============ INSIGHT / ANALYTICS ============ -->

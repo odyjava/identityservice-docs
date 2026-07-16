@@ -78,6 +78,14 @@ h2 .tag{display:inline-block;font-size:.75rem;letter-spacing:.18em;color:var(--b
 .card .ico{font-size:1.7rem;margin-bottom:10px;display:block}
 .card h3{font-size:1.08rem;margin-bottom:8px}
 .card p{color:var(--muted);font-size:.93rem}
+.doc-card{display:block;color:var(--ink)}
+.doc-card .doc-link{display:inline-block;margin-top:14px;color:var(--brand);font-weight:700}
+.change-entry{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:16px;padding:28px}
+.change-entry time{display:inline-block;color:var(--ok);font-family:var(--mono);font-size:.85rem;margin-bottom:8px}
+.change-entry h3{font-size:1.2rem;margin-bottom:12px}
+.change-entry ul{padding-left:22px;color:var(--muted)}
+.change-entry li{margin:7px 0}
+.change-impact{margin-top:18px;padding:14px 16px;background:rgba(61,220,151,.07);border:1px solid rgba(61,220,151,.25);border-radius:10px;color:var(--ink)}
 /* ---------- architecture diagram ---------- */
 .arch{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;padding:30px 18px;overflow-x:auto}
 .arch svg{display:block;margin:0 auto;max-width:100%}
@@ -154,7 +162,8 @@ nav .links a:hover{color:var(--ink)}
     <div class="links">
       <a href="#arch">架構</a><a href="#flow">登入流程</a><a href="#token">Token 設計</a>
       <a href="#oauth">OIDC/OAuth</a><a href="#account">帳號自助</a>
-      <a href="#rules">安全規則</a><a href="#integrate">調用流程</a><a href="#api">API 一覽</a>
+      <a href="#rules">安全規則</a><a href="#docs">開發文件</a>
+      <a href="#updates">更新紀錄</a><a href="api.html">API 文件</a>
     </div>
   </div>
 </nav>
@@ -168,9 +177,9 @@ nav .links a:hover{color:var(--ink)}
     <p>Identity Service 是平台級共用認證服務（authN）——任何需要會員註冊與登入的產品，
        都能透過同一套 API 取得安全的帳號、密碼、多因子驗證與 Token 管理能力。</p>
     <div class="cta">
-      <a class="btn primary" href="https://github.com/odyjava/identityservice-docs/blob/main/INTEGRATION.md" target="_blank" rel="noopener">快速上手教學</a>
-      <a class="btn ghost" href="#flow">看登入流程動畫</a>
-      <a class="btn ghost" href="#api">API 一覽</a>
+      <a class="btn primary" href="api.html">完整 API 文件</a>
+      <a class="btn ghost" href="API.md" download>下載 API.md</a>
+      <a class="btn ghost" href="INTEGRATION.md">快速上手</a>
     </div>
     <div class="badge-row">
       <div class="badge">🔑 OIDC / OAuth 2.0</div>
@@ -520,6 +529,47 @@ nav .links a:hover{color:var(--ink)}
   <p class="sub rv" style="margin-top:6px">第一次接入？新手或 AI 代理人請從
     <a href="https://github.com/odyjava/identityservice-docs/blob/main/INTEGRATION.md" target="_blank" rel="noopener">整合指南</a>
     的「<strong>0. 快速上手：從申請到打通</strong>」照做——涵蓋申請接入、驗證連線、選整合模式到打通的線性步驟，每步都有可複製 curl 與成功判準。完整欄位與錯誤碼亦在同份文件。</p>
+</section>
+
+<!-- ============ DOCUMENTATION ============ -->
+<section id="docs">
+  <h2 class="rv"><span class="tag">DOCS</span>開發文件</h2>
+  <p class="sub rv">工程師可直接閱讀完整 HTML API 說明；也能下載同內容的 Markdown，交給 AI 代理人或開發工具離線使用。</p>
+  <div class="grid c3">
+    <a class="card doc-card rv" href="api.html">
+      <span class="ico">📖</span><h3>完整 API 說明</h3>
+      <p>逐端點列出 Headers、Path／Query Parameters、Payload、Response、錯誤碼與安全規範。</p>
+      <span class="doc-link">閱讀 api.html →</span>
+    </a>
+    <a class="card doc-card rv" href="API.md" download>
+      <span class="ico">🤖</span><h3>下載 API.md</h3>
+      <p>與 HTML 文件涵蓋相同公開契約，可直接提供給 AI 代理人、IDE 或開發工具。</p>
+      <span class="doc-link">下載 Markdown ↓</span>
+    </a>
+    <a class="card doc-card rv" href="INTEGRATION.md">
+      <span class="ico">🚀</span><h3>快速上手指南</h3>
+      <p>從取得 platform code、驗證連線，到完成登入、PKCE 與本地 JWT 驗章。</p>
+      <span class="doc-link">閱讀整合流程 →</span>
+    </a>
+  </div>
+</section>
+
+<!-- ============ CHANGE LOG ============ -->
+<section id="updates">
+  <h2 class="rv"><span class="tag">CHANGE LOG</span>更新紀錄</h2>
+  <p class="sub rv">自 2026-07-16 Production 正式發佈起，公開記錄影響接入方的修復、驗證結果與必要調整。</p>
+  <article class="change-entry rv">
+    <time datetime="2026-07-16">2026-07-16（Asia/Taipei）</time>
+    <h3>Production 正式發佈與部署、OIDC 路由修復</h3>
+    <ul>
+      <li>修正 GitHub Actions 透過 AWS OIDC Assume Role 的信任條件，使 Production environment 可取得部署身分。</li>
+      <li>補齊 Lambda 部署 waiter 所需的查詢權限，使程式碼更新可以等待至完成並正確回報結果。</li>
+      <li>補齊 Recovery Token keyed hash 與公開 Base URL 所需的執行環境設定；未公開任何 Secret 值。</li>
+      <li>修正 Lambda 路徑重寫，保留 <code>/realms/*</code> 與 <code>/webhooks/*</code> 根層路徑，不再誤加 <code>/v1</code>。</li>
+      <li>完成 Production 驗證：<code>/livez</code>、<code>/readyz</code>、OIDC Discovery 與 JWKS 均正常回應。</li>
+    </ul>
+    <p class="change-impact"><strong>接入方影響：</strong>OIDC/OAuth 請使用 <code>/realms/{slug}/*</code>；既有 <code>/v1/*</code> 登入、MFA 與 S2S 串接不需修改。</p>
+  </article>
 </section>
 
 <!-- ============ INSIGHT / ANALYTICS ============ -->

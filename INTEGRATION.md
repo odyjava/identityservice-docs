@@ -3,6 +3,9 @@
 > 本文件為**自包含**整合規格：任何開發者或 AI 讀完即可建立連線並開發客戶端。
 > 對象是「接入平台」（廠商）與其後端／前端。所有範例可直接複製執行。
 > 本文不含任何基礎設施機敏資訊；請向服務營運方索取你的 **平台代碼（platform code）** 與 **S2S API Key**。
+>
+> 完整逐端點規格請閱讀 [HTML API 文件](https://odyjava.github.io/identityservice-docs/api.html)，
+> 或直接下載 [API.md](https://odyjava.github.io/identityservice-docs/API.md) 交給 AI 代理人與開發工具。
 
 ---
 

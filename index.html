@@ -153,7 +153,8 @@ nav .links a:hover{color:var(--ink)}
     <div class="logo">Identity<span>Service</span></div>
     <div class="links">
       <a href="#arch">架構</a><a href="#flow">登入流程</a><a href="#token">Token 設計</a>
-      <a href="#rules">安全規則</a><a href="#integrate">調用流程</a><a href="#insight">監控分析</a><a href="#api">API 一覽</a>
+      <a href="#oauth">OIDC/OAuth</a><a href="#account">帳號自助</a>
+      <a href="#rules">安全規則</a><a href="#integrate">調用流程</a><a href="#api">API 一覽</a>
     </div>
   </div>
 </nav>
@@ -171,6 +172,7 @@ nav .links a:hover{color:var(--ink)}
       <a class="btn ghost" href="#api">API 一覽</a>
     </div>
     <div class="badge-row">
+      <div class="badge">🔑 OIDC / OAuth 2.0</div>
       <div class="badge">🔐 Argon2id 密碼雜湊</div>
       <div class="badge">📱 TOTP 多因子驗證</div>
       <div class="badge">🔄 Refresh 輪替防盜用</div>
@@ -197,6 +199,8 @@ nav .links a:hover{color:var(--ink)}
       <p>以 AWS Lambda 承載、按用量計費、自動擴縮，平時近乎零成本，尖峰不用擔心容量。</p></div>
     <div class="card rv"><span class="ico">🌐</span><h3>標準 JWT 生態</h3>
       <p>簽發 RS256 JWT，公鑰經 JWKS 端點公開，任何服務都能本地驗簽，不需回呼登入服務。</p></div>
+    <div class="card rv"><span class="ico">🔑</span><h3>OIDC / OAuth 2.0 標準</h3>
+      <p>支援 OpenID Connect 授權碼流程（Authorization Code + PKCE S256）：第三方 client 用業界標準登入，每個 realm 有獨立 issuer 與 Discovery 文件。</p></div>
   </div>
 </section>
 
@@ -266,6 +270,123 @@ nav .links a:hover{color:var(--ink)}
     </div>
     <div class="rotate-caption" id="rotCap">每次「換發」：舊 Refresh 立即作廢，取得新 Access ＋ 新 Refresh。</div>
     <div class="rotate-alarm" id="rotAlarm">⚠ 偵測到已作廢的 Token 被重用 → 判定遭竊，該帳號全部憑證即刻撤銷！</div>
+  </div>
+</section>
+
+<!-- ============ OIDC / OAUTH ============ -->
+<section id="oauth">
+  <h2 class="rv"><span class="tag">OAUTH</span>OIDC / OAuth 2.0 授權碼流程</h2>
+  <p class="sub rv">第三方 client（如 Web 應用）以業界標準 <strong>Authorization Code + PKCE（S256）</strong> 登入——公開 client 不需 secret，全程綁定 PKCE 防授權碼攔截；每個 realm 有獨立 issuer 與 Discovery 文件。</p>
+  <div class="grid c3" style="margin-bottom:24px">
+    <div class="card rv"><span class="ico">🔑</span><h3>PKCE（S256）強制</h3>
+      <p>Public client 無 client secret。授權時送 <code>code_challenge</code>，換 token 時附 <code>code_verifier</code>，兩者以 SHA-256 綁定同一次授權，攔截到授權碼也無法兌換。</p></div>
+    <div class="card rv"><span class="ico">🌐</span><h3>Realm-scoped Issuer</h3>
+      <p>每個 realm 的 issuer 為 <code>https://identity.lifeintent.app/realms/{slug}</code>；透過 Discovery 端點即可自動取得授權、token、JWKS 等所有端點位置。</p></div>
+    <div class="card rv"><span class="ico">🎫</span><h3>標準雙 Token</h3>
+      <p>換得 access token（<code>typ=at+jwt</code>、RS256、5 分鐘）與 id token（以你的 client 為 audience）；用該 realm 的 JWKS 公鑰即可本地驗簽。</p></div>
+  </div>
+
+  <!-- 1. Discovery -->
+  <div class="seq rv">
+    <h3><span class="num">1</span>OIDC Discovery（公開，無需認證）</h3>
+    <p class="cap">用 realm slug 取得該 realm 的 issuer 與所有端點位置；驗章公鑰另由 JWKS 端點公開。</p>
+    <svg viewBox="0 0 660 168" xmlns="http://www.w3.org/2000/svg" aria-label="OIDC Discovery 流程">
+      <g class="actor"><rect x="16" y="12" width="170" height="40" rx="10"/><text x="101" y="37" text-anchor="middle">第三方 Client</text></g>
+      <g class="actor svc"><rect x="474" y="12" width="170" height="40" rx="10"/><text x="559" y="37" text-anchor="middle">Identity Service</text></g>
+      <line class="life" x1="101" y1="52" x2="101" y2="160"/>
+      <line class="life" x1="559" y1="52" x2="559" y2="160"/>
+      <text class="mlabel q" x="330" y="80" text-anchor="middle">GET /realms/{slug}/.well-known/openid-configuration</text>
+      <line class="req" x1="101" y1="92" x2="551" y2="92"/>
+      <polygon class="ah-req" points="551,92 541,87 541,97"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" repeatCount="indefinite" path="M101 92 H551"/></circle>
+      <text class="mlabel r" x="330" y="126" text-anchor="middle">200 { issuer, authorization_endpoint, token_endpoint, jwks_uri }</text>
+      <text class="mnote" x="330" y="141" text-anchor="middle">另有 GET /realms/{slug}/.well-known/jwks.json 取該 realm 驗章公鑰</text>
+      <line class="res" x1="559" y1="150" x2="109" y2="150"/>
+      <polygon class="ah-res" points="109,150 119,145 119,155"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite" path="M559 150 H109"/></circle>
+    </svg>
+  </div>
+
+  <!-- 2. authorize + login (+mfa) -> code -->
+  <div class="seq rv">
+    <h3><span class="num">2</span>建立授權交易 → 登入（含 MFA 分支）→ 取授權碼</h3>
+    <p class="cap">先建立短效單次授權交易（驗 Exact Redirect / State / Nonce / PKCE），再以帳密登入換一次性授權碼；若啟用 MFA 多一步。</p>
+    <svg viewBox="0 0 660 356" xmlns="http://www.w3.org/2000/svg" aria-label="授權碼流程">
+      <g class="actor"><rect x="16" y="12" width="170" height="40" rx="10"/><text x="101" y="37" text-anchor="middle">第三方 Client</text></g>
+      <g class="actor svc"><rect x="474" y="12" width="170" height="40" rx="10"/><text x="559" y="37" text-anchor="middle">Identity Service</text></g>
+      <line class="life" x1="101" y1="52" x2="101" y2="348"/>
+      <line class="life" x1="559" y1="52" x2="559" y2="348"/>
+      <!-- authorize -->
+      <text class="mlabel q" x="330" y="76" text-anchor="middle">POST /realms/{slug}/oauth/authorize</text>
+      <text class="mnote" x="330" y="90" text-anchor="middle">{client_id, redirect_uri, state, nonce, code_challenge, code_challenge_method: S256}</text>
+      <line class="req" x1="101" y1="99" x2="551" y2="99"/>
+      <polygon class="ah-req" points="551,99 541,94 541,104"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" repeatCount="indefinite" path="M101 99 H551"/></circle>
+      <text class="mlabel r" x="330" y="123" text-anchor="middle">200 { transaction }（短效・單次授權交易）</text>
+      <line class="res" x1="559" y1="132" x2="109" y2="132"/>
+      <polygon class="ah-res" points="109,132 119,127 119,137"/>
+      <!-- login -->
+      <text class="mlabel q" x="330" y="160" text-anchor="middle">POST /realms/{slug}/oauth/authorize/login</text>
+      <text class="mnote" x="330" y="174" text-anchor="middle">{transaction, username, password}</text>
+      <line class="req" x1="101" y1="183" x2="551" y2="183"/>
+      <polygon class="ah-req" points="551,183 541,178 541,188"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="0.6s" repeatCount="indefinite" path="M101 183 H551"/></circle>
+      <!-- branch A -->
+      <text class="mbranch" x="330" y="209" text-anchor="middle">分支 A · 未啟用 MFA → 直接回授權碼</text>
+      <text class="mlabel r" x="330" y="226" text-anchor="middle">200 { code }（一次性授權碼）</text>
+      <line class="res" x1="559" y1="235" x2="109" y2="235"/>
+      <polygon class="ah-res" points="109,235 119,230 119,240"/>
+      <!-- branch B -->
+      <text class="mbranch" x="330" y="261" text-anchor="middle">分支 B · 已啟用 MFA → 回挑戰票</text>
+      <text class="mlabel r" x="330" y="278" text-anchor="middle">200 { mfa_required: true, mfa_token }</text>
+      <line class="res" x1="559" y1="287" x2="109" y2="287"/>
+      <polygon class="ah-res" points="109,287 119,282 119,292"/>
+      <text class="mlabel q" x="330" y="314" text-anchor="middle">POST /realms/{slug}/oauth/authorize/mfa</text>
+      <text class="mnote" x="330" y="328" text-anchor="middle">{transaction, mfa_token, code}（驗證器 6 位數）→ 回 200 { code }</text>
+      <line class="req" x1="101" y1="337" x2="551" y2="337"/>
+      <polygon class="ah-req" points="551,337 541,332 541,342"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="1.2s" repeatCount="indefinite" path="M101 337 H551"/></circle>
+    </svg>
+  </div>
+
+  <!-- 3. token exchange -->
+  <div class="seq rv">
+    <h3><span class="num">3</span>以授權碼 ＋ PKCE verifier 換 Token</h3>
+    <p class="cap">public client 不帶 secret；必須附上與授權時 challenge 對應的 <code>code_verifier</code>。請求為 form-urlencoded。</p>
+    <svg viewBox="0 0 660 188" xmlns="http://www.w3.org/2000/svg" aria-label="Token 交換流程">
+      <g class="actor"><rect x="16" y="12" width="170" height="40" rx="10"/><text x="101" y="37" text-anchor="middle">第三方 Client</text></g>
+      <g class="actor svc"><rect x="474" y="12" width="170" height="40" rx="10"/><text x="559" y="37" text-anchor="middle">Identity Service</text></g>
+      <line class="life" x1="101" y1="52" x2="101" y2="180"/>
+      <line class="life" x1="559" y1="52" x2="559" y2="180"/>
+      <text class="mlabel q" x="330" y="78" text-anchor="middle">POST /realms/{slug}/oauth/token</text>
+      <text class="mnote" x="330" y="92" text-anchor="middle">grant_type=authorization_code · code · code_verifier · redirect_uri · client_id（form-urlencoded）</text>
+      <line class="req" x1="101" y1="101" x2="551" y2="101"/>
+      <polygon class="ah-req" points="551,101 541,96 541,106"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" repeatCount="indefinite" path="M101 101 H551"/></circle>
+      <text class="mlabel r" x="330" y="135" text-anchor="middle">200 { access_token (typ=at+jwt), id_token, token_type, expires_in: 300 }</text>
+      <text class="mnote" x="330" y="150" text-anchor="middle">access RS256・5 分鐘；id token 以你的 client 為 audience；用 realm JWKS 本地驗簽</text>
+      <line class="res" x1="559" y1="160" x2="109" y2="160"/>
+      <polygon class="ah-res" points="109,160 119,155 119,165"/>
+      <circle class="pkt2" r="3.5"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite" path="M559 160 H109"/></circle>
+    </svg>
+  </div>
+
+  <p class="sub rv" style="margin-top:6px">另提供 <code>POST /realms/{slug}/oauth/revoke</code>（RFC 7009 撤銷）與 <code>POST /realms/{slug}/oauth/introspect</code>（RFC 7662 內省，供 resource server 以 S2S API Key 線上查驗；inactive 一律只回 <code>{"active":false}</code>）。</p>
+</section>
+
+<!-- ============ ACCOUNT SELF-SERVICE ============ -->
+<section id="account">
+  <h2 class="rv"><span class="tag">SELF-SERVICE</span>帳號自助與復原</h2>
+  <p class="sub rv">Email 驗證、密碼重設與高權限帳號復原皆為自助流程；所有「請求」端點一律回一致的 generic response，不洩漏帳號是否存在。</p>
+  <div class="grid c2">
+    <div class="card rv"><span class="ico">✉️</span><h3>Email 驗證</h3>
+      <p>請求驗證信後，以信中一次性 token 確認 email。Token 僅存 keyed hash、有 TTL、用過即廢；請求端點回應不透露該 email 是否已註冊。</p></div>
+    <div class="card rv"><span class="ico">🔑</span><h3>密碼重設</h3>
+      <p>請求重設信後，以信中 token 設定新密碼。成功後<strong>立即撤銷該帳號全部 refresh token</strong>，強制所有既有工作階段重新登入。</p></div>
+    <div class="card rv"><span class="ico">🆘</span><h3>高權限帳號 MFA 復原</h3>
+      <p>管理者類帳號遺失 MFA 時，可走兩條路徑：以<strong>備援碼</strong>自助完成，或經<strong>管理人工核准</strong>後完成——兩者皆留下稽核紀錄。</p></div>
+    <div class="card rv"><span class="ico">🔁</span><h3>備援碼重新產生</h3>
+      <p>使用者可重新產生一組全新的 MFA 備援碼（舊碼一併作廢）；此敏感操作需同時提供密碼＋當下動態碼再次驗證身分。</p></div>
   </div>
 </section>
 
@@ -429,23 +550,45 @@ nav .links a:hover{color:var(--ink)}
 <!-- ============ API ============ -->
 <section id="api">
   <h2 class="rv"><span class="tag">API</span>端點一覽</h2>
-  <p class="sub rv">Base URL：<code>https://identity.lifeintent.app/v1</code>　全部走 JSON over HTTPS。</p>
+  <p class="sub rv">兩組公開路徑：<code>/realms/{slug}/*</code>（OIDC / OAuth 2.0，realm-scoped）與 <code>/v1/*</code>（認證、帳號自助、MFA、S2S 供應）。全部走 HTTPS；OAuth token 端點為 form-urlencoded，其餘為 JSON。</p>
   <div class="tbl-wrap rv">
     <table>
       <thead><tr><th>方法</th><th>路徑</th><th>用途</th><th>認證</th></tr></thead>
       <tbody>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/login</code></td><td>帳密登入（依 MFA 設定回 Token 或挑戰票）</td><td class="lock">—</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/refresh</code></td><td>Token 換發（輪替），唯一續期機制</td><td class="lock">—</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/logout</code></td><td>登出並撤銷 Refresh Token</td><td class="lock">—</td></tr>
-        <tr><td><span class="m get">GET</span></td><td><code>/.well-known/jwks.json</code></td><td>公開驗章公鑰（JWKS）</td><td class="lock">—</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/setup</code></td><td>開始綁定 MFA（產生 QR）</td><td class="lock">🔒 JWT</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/activate</code></td><td>驗第一碼啟用，發備援碼</td><td class="lock">🔒 JWT</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/verify</code></td><td>登入第二步：驗動態碼發 Token</td><td class="lock">—</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/recovery</code></td><td>備援碼登入（手機遺失）</td><td class="lock">—</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/auth/mfa/disable</code></td><td>關閉 MFA（需密碼＋動態碼）</td><td class="lock">🔒 JWT</td></tr>
-        <tr><td><span class="m post">POST</span></td><td><code>/internal/accounts</code></td><td>建立帳號（限平台核心系統）</td><td class="lock">🔑 API Key</td></tr>
-        <tr><td><span class="m patch">PATCH</span></td><td><code>/internal/accounts/{sub}</code></td><td>停用／重設密碼／緊急撤銷</td><td class="lock">🔑 API Key</td></tr>
-        <tr><td><span class="m get">GET</span></td><td><code>/livez</code>・<code>/readyz</code>（根層）</td><td>服務健康檢查</td><td class="lock">—</td></tr>
+        <tr><td colspan="4" style="padding-top:16px;color:var(--brand);font-weight:700;font-size:.82rem;letter-spacing:.06em;border-bottom:1px solid var(--brand)">OIDC / OAuth 2.0（realm-scoped，Authorization Code + PKCE）</td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/realms/{slug}/.well-known/openid-configuration</code></td><td>OIDC Discovery 文件</td><td class="lock">—</td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/realms/{slug}/.well-known/jwks.json</code></td><td>該 realm 驗章公鑰（JWKS）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/realms/{slug}/oauth/authorize</code></td><td>建立單次授權交易（驗 redirect/state/nonce/PKCE）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/realms/{slug}/oauth/authorize/login</code></td><td>帳密登入完成後取授權碼（或回 MFA 挑戰）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/realms/{slug}/oauth/authorize/mfa</code></td><td>MFA 第二步後取授權碼</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/realms/{slug}/oauth/token</code></td><td>以 code ＋ PKCE verifier 換 access／id token</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/realms/{slug}/oauth/revoke</code></td><td>Token 撤銷（RFC 7009）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/realms/{slug}/oauth/introspect</code></td><td>Token 內省（RFC 7662；inactive 只回 active:false）</td><td class="lock">🔑 API Key</td></tr>
+        <tr><td colspan="4" style="padding-top:20px;color:var(--brand);font-weight:700;font-size:.82rem;letter-spacing:.06em;border-bottom:1px solid var(--brand)">認證 /v1</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/login</code></td><td>帳密登入（依 MFA 設定回 Token 或挑戰票）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/refresh</code></td><td>Token 換發（輪替），唯一續期機制</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/logout</code></td><td>登出並撤銷 Refresh Token</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/mfa/verify</code></td><td>登入第二步：驗動態碼發 Token</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/mfa/recovery</code></td><td>備援碼登入（手機遺失）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/v1/.well-known/jwks.json</code></td><td>公開驗章公鑰（JWKS）</td><td class="lock">—</td></tr>
+        <tr><td colspan="4" style="padding-top:20px;color:var(--brand);font-weight:700;font-size:.82rem;letter-spacing:.06em;border-bottom:1px solid var(--brand)">帳號自助 /v1</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/email/verify/request</code></td><td>請求 email 驗證信（generic response）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/email/verify/confirm</code></td><td>以 token 確認 email</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/password/reset/request</code></td><td>請求密碼重設信（generic response）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/password/reset/confirm</code></td><td>以 token 重設密碼（撤銷全部 refresh）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/privileged-recovery/request</code></td><td>高權限帳號 MFA 復原請求（generic response）</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/privileged-recovery/complete</code></td><td>以備援碼完成復原</td><td class="lock">—</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/privileged-recovery/complete-with-approval</code></td><td>經管理人工核准後完成復原</td><td class="lock">—</td></tr>
+        <tr><td colspan="4" style="padding-top:20px;color:var(--brand);font-weight:700;font-size:.82rem;letter-spacing:.06em;border-bottom:1px solid var(--brand)">MFA 管理 /v1（需使用者 access JWT）</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/mfa/setup</code></td><td>開始綁定 MFA（產生 QR）</td><td class="lock">🔒 JWT</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/mfa/activate</code></td><td>驗第一碼啟用，發備援碼</td><td class="lock">🔒 JWT</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/mfa/disable</code></td><td>關閉 MFA（需密碼＋動態碼）</td><td class="lock">🔒 JWT</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/mfa/recovery-codes/regenerate</code></td><td>重新產生備援碼（需密碼＋動態碼）</td><td class="lock">🔒 JWT</td></tr>
+        <tr><td colspan="4" style="padding-top:20px;color:var(--brand);font-weight:700;font-size:.82rem;letter-spacing:.06em;border-bottom:1px solid var(--brand)">S2S 帳號供應 /v1（需 per-platform API Key）</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/internal/accounts</code></td><td>建立帳號（限平台核心系統）</td><td class="lock">🔑 API Key</td></tr>
+        <tr><td><span class="m patch">PATCH</span></td><td><code>/v1/internal/accounts/{sub}</code></td><td>停用／重設密碼／緊急撤銷</td><td class="lock">🔑 API Key</td></tr>
+        <tr><td colspan="4" style="padding-top:20px;color:var(--brand);font-weight:700;font-size:.82rem;letter-spacing:.06em;border-bottom:1px solid var(--brand)">健康檢查（根層）</td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/livez</code>・<code>/readyz</code></td><td>服務健康檢查</td><td class="lock">—</td></tr>
       </tbody>
     </table>
   </div>
@@ -455,7 +598,7 @@ nav .links a:hover{color:var(--ink)}
 
 <footer>
   Identity Service · 平台級共用認證服務 · 本頁為公開說明文件，不含任何憑證或內部資訊<br>
-  技術棧：Go · AWS Lambda · PostgreSQL · RS256 JWT · Argon2id · RFC 6238 TOTP · 內建營運分析
+  技術棧：Go · AWS Lambda · PostgreSQL · OIDC / OAuth 2.0 · PKCE · RS256 JWT · Argon2id · RFC 6238 TOTP · 內建營運分析
 </footer>
 
 <script>

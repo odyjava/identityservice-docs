@@ -10,9 +10,10 @@
 
 | 項目 | 值 |
 |------|-----|
-| API Base URL | `https://identity.lifeintent.app/v1` |
+| API Base URL（`/v1` 家族） | `https://identity.lifeintent.app/v1` |
+| OIDC / OAuth Base（realm-scoped） | `https://identity.lifeintent.app/realms/{slug}`（issuer 亦同此值，見 §5） |
 | 健康檢查（根層，無 `/v1`） | `https://identity.lifeintent.app/livez`、`/readyz` |
-| 傳輸 | JSON over HTTPS；請求與回應皆 `Content-Type: application/json` |
+| 傳輸 | JSON over HTTPS；OAuth `token`/`revoke`/`introspect` 端點為 `application/x-www-form-urlencoded`，其餘為 `application/json` |
 | 字元集 | UTF-8 |
 | 未知欄位 | 一律拒絕（回 422）；請勿送出規格外欄位 |
 
@@ -43,11 +44,14 @@ X-Session-Platform-Code: <你的 platform code>
 
 | 情境 | 認證 | Header |
 |------|------|--------|
-| 使用者登入 / 換發 / 登出 / MFA 驗證 / JWKS | 無（走 body 內的帳密或 token） | `X-Session-Platform-Code` |
-| MFA 綁定管理（setup/activate/disable） | 使用者 access JWT | `X-Session-Platform-Code` + `Authorization: Bearer <access_token>` |
+| 使用者登入 / 換發 / 登出 / MFA 驗證 / JWKS / 帳號自助 | 無（走 body 內的帳密或 token） | `X-Session-Platform-Code` |
+| MFA 綁定管理（setup/activate/disable/regenerate） | 使用者 access JWT | `X-Session-Platform-Code` + `Authorization: Bearer <access_token>` |
 | S2S 帳號供應（`/internal/*`） | 平台 API Key | `X-Session-Platform-Code` + `Authorization: Bearer <sk_... API Key>` |
+| OIDC / OAuth（`/realms/{slug}/*`，discovery / authorize / login / token / revoke） | 無（realm slug 已在路徑，PKCE 綁定授權碼） | 不需 `X-Session-Platform-Code` |
+| OAuth token 內省（`/realms/{slug}/oauth/introspect`） | resource server 的 API Key | `Authorization: Bearer <sk_... API Key>` |
 
 - **API Key** 形如 `sk_...`，由服務營運方為你的平台簽發，**只能操作你自己平台**的帳號（跨平台一律 401）。請存入你的密鑰管理系統，切勿寫入原始碼或日誌。
+- **OIDC / OAuth 端點以 realm slug 定位**（路徑中的 `{slug}` 即你的 platform code），因此不需另帶 `X-Session-Platform-Code`。
 
 ---
 
@@ -187,9 +191,207 @@ curl -X PATCH https://identity.lifeintent.app/v1/internal/accounts/<sub> \
 回應 `200`：`{ "data": { "sub": "...", "applied": true } }`。帳號不存在回 `404 COMMON_NOT_FOUND (1002)`。
 （停用會同時撤銷該帳號全部 refresh。）
 
+### 4.8 OIDC / OAuth 2.0 授權碼流程（第三方 client）
+
+第三方應用（如獨立 Web 前端）以標準 **Authorization Code + PKCE（S256）** 登入。此家族端點以 realm slug 定位（路徑內即你的 platform code），**不需** `X-Session-Platform-Code`。Public client **無 secret**，改以 PKCE 綁定授權碼。
+
+> 需向營運方索取：你的 **client_id** 與已登記的 **redirect_uri**（Exact 比對）。
+
+**步驟 0 — 產生 PKCE 參數（客戶端本地）**：`code_verifier` = 高熵隨機字串；`code_challenge` = `BASE64URL(SHA256(code_verifier))`。另各產生一個隨機 `state` 與 `nonce`。
+
+**① Discovery（公開，無需認證）**
+
+```bash
+curl https://identity.lifeintent.app/realms/<slug>/.well-known/openid-configuration
+```
+
+回應含 `issuer`（= `https://identity.lifeintent.app/realms/<slug>`）、`authorization_endpoint`、`token_endpoint`、`jwks_uri` 等；請以此文件為端點來源。
+
+**② 建立授權交易**
+
+```bash
+curl -X POST https://identity.lifeintent.app/realms/<slug>/oauth/authorize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "client_id":"<client_id>",
+    "redirect_uri":"https://app.example.com/callback",
+    "response_type":"code",
+    "scope":"openid",
+    "state":"<random_state>",
+    "nonce":"<random_nonce>",
+    "code_challenge":"<BASE64URL(SHA256(verifier))>",
+    "code_challenge_method":"S256"
+  }'
+```
+
+服務驗證 Exact `redirect_uri` / `state` / `nonce` / PKCE 後，回一張**短效、單次**的授權交易憑證 `transaction`。
+
+**③ 以帳密登入取授權碼（含 MFA 分支）**
+
+```bash
+curl -X POST https://identity.lifeintent.app/realms/<slug>/oauth/authorize/login \
+  -H "Content-Type: application/json" \
+  -d '{"transaction":"<transaction>","username":"alice","password":"S3cure-Pass!"}'
+```
+
+- 未啟用 MFA → 回一次性授權碼 `{ "code": "<code>" }`。
+- 已啟用 MFA → 回 `{ "mfa_required": true, "mfa_token": "mfa_..." }`，再走一步：
+
+```bash
+curl -X POST https://identity.lifeintent.app/realms/<slug>/oauth/authorize/mfa \
+  -H "Content-Type: application/json" \
+  -d '{"transaction":"<transaction>","mfa_token":"mfa_...","code":"123456"}'
+```
+
+回一次性授權碼 `{ "code": "<code>" }`。你的 client 依 `redirect_uri` 導回並帶上 `code` 與原 `state`（務必比對 `state` 一致）。
+
+**④ 以授權碼 ＋ PKCE verifier 換 Token**（form-urlencoded，遵循 OAuth 2.0 標準，回應**不套用** `{data}` 包絡）
+
+```bash
+curl -X POST https://identity.lifeintent.app/realms/<slug>/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code" \
+  -d "code=<code>" \
+  -d "code_verifier=<code_verifier>" \
+  -d "redirect_uri=https://app.example.com/callback" \
+  -d "client_id=<client_id>"
+```
+
+回應 `200`：
+
+```json
+{ "access_token": "eyJ...", "id_token": "eyJ...", "token_type": "Bearer", "expires_in": 300 }
+```
+
+- **access token**：`typ=at+jwt`、RS256、5 分鐘。以該 realm 的 JWKS（`GET /realms/<slug>/.well-known/jwks.json`）本地驗簽。
+- **id token**：以你的 `client_id` 為 `aud`；請驗證 `nonce` 與先前送出者一致。
+- `code`、`transaction`、`mfa_token` 皆一次性、短效；`code_verifier` 未對應原 `code_challenge` 時換發失敗。
+
+### 4.9 Token 撤銷與內省（OAuth 2.0）
+
+撤銷（RFC 7009；不論 token 是否存在一律回成功，不洩漏狀態）：
+
+```bash
+curl -X POST https://identity.lifeintent.app/realms/<slug>/oauth/revoke \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "token=<access_or_refresh_token>"
+```
+
+內省（RFC 7662；供 **resource server** 以 S2S API Key 線上查驗 token 狀態）：
+
+```bash
+curl -X POST https://identity.lifeintent.app/realms/<slug>/oauth/introspect \
+  -H "Authorization: Bearer <sk_API_KEY>" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "token=<access_token>"
+```
+
+- 有效 token 回 `{ "active": true, "sub": "...", "aud": "...", "exp": ... }` 等聲明。
+- 無效／過期／已撤銷一律只回 `{ "active": false }`（不洩漏任何細節）。
+- 一般情境優先用本地 JWKS 驗簽（§4.6）；需即時得知撤銷狀態時才用內省。
+
+### 4.10 Email 驗證（自助）
+
+請求驗證信（**generic response**：不論 email 是否存在皆回成功，不可用於探測帳號）：
+
+```bash
+curl -X POST https://identity.lifeintent.app/v1/auth/email/verify/request \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","tenant":""}'
+```
+
+使用者收信後，以信中一次性 token 確認：
+
+```bash
+curl -X POST https://identity.lifeintent.app/v1/auth/email/verify/confirm \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Content-Type: application/json" \
+  -d '{"token":"<信中 token>"}'
+```
+
+Token 僅存 keyed hash、單次使用、有 TTL；逾期或已用回 `401`。
+
+### 4.11 密碼重設（自助）
+
+請求重設信（同為 generic response）：
+
+```bash
+curl -X POST https://identity.lifeintent.app/v1/auth/password/reset/request \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","tenant":""}'
+```
+
+以信中 token 設定新密碼：
+
+```bash
+curl -X POST https://identity.lifeintent.app/v1/auth/password/reset/confirm \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Content-Type: application/json" \
+  -d '{"token":"<信中 token>","new_password":"新的強密碼"}'
+```
+
+> 重設成功後，**該帳號全部 refresh token 立即撤銷**，所有既有工作階段須重新登入。
+
+### 4.12 高權限帳號 MFA 復原
+
+管理者類（`staff`）帳號遺失 MFA 時的復原流程；請求端點同為 generic response，全程留稽核。兩條完成路徑：
+
+```bash
+# 發起復原請求（generic response）
+curl -X POST https://identity.lifeintent.app/v1/auth/privileged-recovery/request \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","tenant":""}'
+
+# 路徑一：以備援碼自助完成
+curl -X POST https://identity.lifeintent.app/v1/auth/privileged-recovery/complete \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","tenant":"","recovery_code":"XXXXX-XXXXX"}'
+
+# 路徑二：經營運方人工核准後完成
+curl -X POST https://identity.lifeintent.app/v1/auth/privileged-recovery/complete-with-approval \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","tenant":"","approval_token":"<核准後取得的一次性憑證>"}'
+```
+
+> 上述請求欄位為代表性示意；確切欄位以凍結的 OpenAPI 契約為準。復原完成後建議立即重新綁定 MFA。
+
+### 4.13 重新產生 MFA 備援碼（需使用者 access JWT）
+
+備援碼快用完或疑似外洩時，重新產生一組全新備援碼（**舊碼全部作廢**）。此敏感操作需再次驗證身分（密碼＋當下動態碼）：
+
+```bash
+curl -X POST https://identity.lifeintent.app/v1/auth/mfa/recovery-codes/regenerate \
+  -H "X-Session-Platform-Code: <platform_code>" \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"password":"S3cure-Pass!","code":"123456"}'
+```
+
+回應 `200`：`{ "data": { "recovery_codes": ["XXXXX-XXXXX", ...共 10 組] } }`（**僅此一次**明碼回傳，請立即交付使用者收好）。
+
 ---
 
 ## 5. 端點速查
+
+**OIDC / OAuth 2.0（realm-scoped，路徑前綴 `/realms/{slug}`）**
+
+| 方法 | 路徑 | 認證 | 用途 |
+|------|------|------|------|
+| GET | `/.well-known/openid-configuration` | 無 | OIDC Discovery 文件 |
+| GET | `/.well-known/jwks.json` | 無 | 該 realm 驗章公鑰 |
+| POST | `/oauth/authorize` | 無 | 建立單次授權交易（驗 redirect/state/nonce/PKCE） |
+| POST | `/oauth/authorize/login` | 無 | 帳密登入取授權碼（或回 MFA 挑戰） |
+| POST | `/oauth/authorize/mfa` | 無 | MFA 第二步後取授權碼 |
+| POST | `/oauth/token` | 無（PKCE） | 以 code + verifier 換 access／id token（form） |
+| POST | `/oauth/revoke` | 無 | Token 撤銷（RFC 7009，form） |
+| POST | `/oauth/introspect` | API Key | Token 內省（RFC 7662，form） |
+
+**`/v1` 家族（路徑前綴 `/v1`；「平台」= 帶 `X-Session-Platform-Code`）**
 
 | 方法 | 路徑 | 認證 | 用途 |
 |------|------|------|------|
@@ -199,9 +401,17 @@ curl -X PATCH https://identity.lifeintent.app/v1/internal/accounts/<sub> \
 | GET | `/.well-known/jwks.json` | 平台 | 公開驗章公鑰 |
 | POST | `/auth/mfa/verify` | 平台 | MFA 登入第二步（TOTP） |
 | POST | `/auth/mfa/recovery` | 平台 | 備援碼登入 |
+| POST | `/auth/email/verify/request` | 平台 | 請求 email 驗證信（generic） |
+| POST | `/auth/email/verify/confirm` | 平台 | 以 token 確認 email |
+| POST | `/auth/password/reset/request` | 平台 | 請求密碼重設信（generic） |
+| POST | `/auth/password/reset/confirm` | 平台 | 以 token 重設密碼（撤銷全部 refresh） |
+| POST | `/auth/privileged-recovery/request` | 平台 | 高權限帳號 MFA 復原請求（generic） |
+| POST | `/auth/privileged-recovery/complete` | 平台 | 以備援碼完成復原 |
+| POST | `/auth/privileged-recovery/complete-with-approval` | 平台 | 經人工核准後完成復原 |
 | POST | `/auth/mfa/setup` | JWT | 開始綁定 MFA（回 QR 用 otpauth URI） |
 | POST | `/auth/mfa/activate` | JWT | 驗第一碼啟用，回 10 組備援碼 |
 | POST | `/auth/mfa/disable` | JWT | 關閉 MFA（需密碼＋當下 TOTP 碼） |
+| POST | `/auth/mfa/recovery-codes/regenerate` | JWT | 重新產生備援碼（需密碼＋TOTP 碼） |
 | POST | `/internal/accounts` | API Key | 供應帳號 |
 | PATCH | `/internal/accounts/{sub}` | API Key | 停用／重設密碼／緊急撤銷 |
 | GET | `/livez`、`/readyz`（根層） | 無 | 健康檢查 |
@@ -218,10 +428,13 @@ curl -X PATCH https://identity.lifeintent.app/v1/internal/accounts/<sub> \
 
 | 憑證 | 形式 | 效期 | 規則 |
 |------|------|------|------|
-| Access Token | JWT，RS256 | member 45m / staff 12m | 本地 JWKS 驗簽；驗 iss/aud/exp |
+| Access Token（`/v1` login） | JWT，RS256 | member 45m / staff 12m | 本地 JWKS 驗簽；驗 iss/aud/exp |
+| OAuth Access Token（`/oauth/token`） | JWT，RS256，`typ=at+jwt` | 5 分鐘 | 以 realm JWKS 驗簽；issuer = realm issuer |
+| OAuth ID Token | JWT，RS256 | 隨授權 | `aud` = client_id；驗 `nonce` |
+| Authorization Code | 不透明 `code` | 短效 | 一次性；換 token 需 PKCE verifier |
+| transaction / mfa_token | 不透明 | 短效（mfa_token 5 分鐘） | 一次性授權交易 / 挑戰票 |
 | Refresh Token | 不透明 `rt_...` | ~30 天滑動 | 每次換發輪替；重用即整帳號撤銷 |
-| mfa_token | 不透明 `mfa_...` | 5 分鐘 | 一次性挑戰票 |
-| 備援碼 | `XXXXX-XXXXX` | — | 一次性，僅啟用時顯示一次 |
+| 備援碼 | `XXXXX-XXXXX` | — | 一次性，僅啟用／重產時顯示一次 |
 | API Key | `sk_...` | 長期 | per-platform、僅供 S2S、勿外洩 |
 
 ---

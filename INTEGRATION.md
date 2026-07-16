@@ -6,6 +6,100 @@
 
 ---
 
+## 0. 快速上手：從申請到打通（照做即可）
+
+> 本節是**線性教學**：接入方工程師、或代為整合的 AI 代理人，從上到下照做即可完成第一次成功登入與驗簽。細節與其他情境見 §1 之後的參考章節。
+
+### Step 1 — 申請接入（向服務營運方索取）
+
+開始前，向 Identity Service 營運方索取以下參數（這些**無法自行產生**，必須由營運方指派）：
+
+| 一定要 | 說明 |
+|--------|------|
+| **platform code**（realm slug） | 你的平台識別，如 `topinkiwi`；出現在 header 與 OIDC 路徑 |
+
+依你選的整合模式，額外索取：
+
+| 模式 | 額外要 |
+|------|--------|
+| **A. S2S ＋ 平台登入**（你的後端管註冊、你的前後端直接呼叫登入） | **S2S API Key**（`sk_...`） |
+| **B. OIDC / OAuth**（第三方 client 走標準授權碼登入，你不碰密碼） | **client_id** ＋ 已登記的 **redirect_uri**（Exact 比對） |
+
+Base URL 固定為 `https://identity.lifeintent.app`（見 §1）。
+
+### Step 2 — 驗證連線（約 30 秒，不需任何憑證）
+
+先確認網路與 platform code 正確，再寫任何程式碼：
+
+```bash
+# a) 服務存活
+curl https://identity.lifeintent.app/livez
+# 預期：{"status":"live"}
+
+# b) 帶你的 platform code 取公鑰
+curl https://identity.lifeintent.app/v1/.well-known/jwks.json \
+  -H "X-Session-Platform-Code: <platform_code>"
+# 預期：200，回一組 JWKS keys
+
+# c) 故意帶錯 platform code，確認 header 真的生效
+curl -X POST https://identity.lifeintent.app/v1/auth/login \
+  -H "X-Session-Platform-Code: does-not-exist" \
+  -H "Content-Type: application/json" -d '{}'
+# 預期：400，錯誤 code = AUTH_PLATFORM_UNKNOWN (2013)
+```
+
+✅ **通過標準**：(a) 回 `live`、(b) 回 200 JWKS、(c) 回 `2013`。三者都對，代表連線與 platform code 就緒。
+
+### Step 3 — 選整合模式
+
+| 你的情況 | 選 | 打通路徑 |
+|----------|-----|----------|
+| 自家產品，後端能安全保管 API Key，想最快接上 | **模式 A** | Step 4A |
+| 獨立／第三方前端、或需標準 OIDC（id_token、PKCE、跨應用 SSO） | **模式 B** | Step 4B |
+
+兩種模式可並存；不確定就先用 **模式 A** 打通，之後再加 B。
+
+### Step 4A — 打通（模式 A：S2S ＋ 平台登入）
+
+照順序做，每步都有預期輸出：
+
+1. **供應一個測試帳號**（你的後端，帶 API Key）→ 詳見 §4.1
+   預期 `201` → 記下回傳的 `data.sub`。
+2. **用該帳密登入** → 詳見 §4.2
+   預期 `200` → 取得 `data.access_token` 與 `data.refresh_token`。
+   （若回 `mfa_required:true`，該帳號已綁 MFA，續走 §4.3。）
+3. **本地驗簽剛拿到的 access token** → 詳見 §4.6
+   用 §Step 2 的 JWKS 公鑰，驗 `RS256` 簽章與 `iss`／`aud`／`exp`。
+4. （可選）**換發** → 詳見 §4.4，確認 refresh 輪替可用。
+
+✅ **打通標準**：能對一個 login 取得的 access token 完成**本地驗簽**並讀出 `sub`。到此你已完整打通認證閉環。
+
+### Step 4B — 打通（模式 B：OIDC / OAuth Authorization Code + PKCE）
+
+完整可複製指令見 §4.8；最小順序如下：
+
+1. **產生 PKCE**：`code_verifier`（高熵隨機）＋ `code_challenge = BASE64URL(SHA256(code_verifier))`，另備隨機 `state`、`nonce`。
+2. **Discovery**：`GET /realms/<slug>/.well-known/openid-configuration` → 以回傳的 `authorization_endpoint`／`token_endpoint` 為準。
+3. **建立授權交易**：`POST /realms/<slug>/oauth/authorize`（帶 client_id／redirect_uri／PKCE challenge）→ 取得 `transaction`。
+4. **帳密登入取碼**：`POST /realms/<slug>/oauth/authorize/login`（帶 transaction＋帳密）→ 取得一次性 `code`（MFA 帳號多一步 `/authorize/mfa`）。
+5. **換 token**：`POST /realms/<slug>/oauth/token`（**form-urlencoded**，帶 code＋code_verifier＋redirect_uri＋client_id）→ 取得 `access_token`＋`id_token`。
+6. **驗簽**：access token 以該 realm JWKS 驗簽；id_token 驗 `aud == client_id` 且 `nonce` 與 Step 1 一致。
+
+✅ **打通標準**：以 `code` ＋ `code_verifier` 成功換到 `access_token`＋`id_token`，且兩者驗簽通過。
+
+### Step 5 — 常見卡關對照
+
+| 症狀 | 原因與解法 |
+|------|-----------|
+| `400 AUTH_PLATFORM_UNKNOWN (2013)` | 沒帶或帶錯 `X-Session-Platform-Code`（`/realms/*` OIDC 端點則不需此 header） |
+| `422 COMMON_VALIDATION_FAILED (1001)` | 送了規格外欄位或格式錯；未知欄位一律拒絕 |
+| `401 AUTH_TOKEN_INVALID (2011)`（S2S） | API Key 缺失／錯誤／用在別的平台 |
+| OAuth `token` 端點回錯誤 | 多半是用了 JSON；此端點必須 `application/x-www-form-urlencoded` |
+| OAuth 授權被拒 | `redirect_uri` 與登記值需**完全一致**（Exact，連結尾斜線都算）；`code_verifier` 要對應原 `code_challenge` |
+| `401 AUTH_REFRESH_REUSED (2009)` | 舊 refresh 被重用；務必只保留最新一張，換發成功即丟棄舊的 |
+
+---
+
 ## 1. 服務端點
 
 | 項目 | 值 |

@@ -1,7 +1,7 @@
 # Identity Service 公開 API 文件
 
 > Base URL：`https://identity.lifeintent.app`
-> 文件更新：2026-07-16（Asia/Taipei）
+> 文件更新：2026-07-20（Asia/Taipei）
 > 適用對象：接入平台的前端、後端、Resource Server 與 AI 開發代理人。
 > 公開範圍不包含營運者專用 `/v1/admin/*` 與系統 Webhook `/webhooks/*`。
 
@@ -554,7 +554,22 @@ Resource Server 以 S2S API Key 查詢 Token 狀態，遵循 RFC 7662。
 **Errors：** `AUTH_INVALID_CREDENTIALS`、`AUTH_MFA_INVALID_CODE`、`AUTH_TOKEN_INVALID`。
 **Security：** 舊 Recovery Codes 全部失效；新 Codes 僅此一次明文回傳。
 
-## 8. Email、密碼與高權限帳號復原
+## 8. 註冊、Email、密碼與高權限帳號復原
+
+### POST /v1/auth/register
+
+**Headers：** `X-Session-Platform-Code`、`Content-Type: application/json`
+**Payload：** `{"email":"alice@example.com","password":"correct-horse-battery"}`。
+**Path／Query Parameters：** 無。
+
+**Success：`202 Accepted`**
+
+```json
+{"data":{"accepted":true}}
+```
+
+**Errors：** Email／密碼格式或 Realm 不允許自助註冊為 `COMMON_VALIDATION_FAILED`；已知外洩密碼為 `AUTH_PASSWORD_COMPROMISED`；共享配額超限為 `COMMON_RATE_LIMITED`。
+**Security：** 成功與同 Realm 等價 Email 已存在回完全相同的狀態與 Body。密碼必須為 12～128 個 Unicode 字元；Account、Credential、Primary Email 與 Required Action 同一 Transaction 建立。只允許要求 Email 驗證、允許 pending 且不要求 MFA 才能啟用的 member Realm；`system` Realm 一律拒絕。註冊後寄信若暫時失敗，可安全呼叫重寄端點補償。所有 Lambda Runtime 共用 PostgreSQL 雙層限制：同 Realm／IP 預設 5 次每 10 分鐘、單一 Realm 預設 100 次每分鐘；只落地 IP 的 HMAC。
 
 ### POST /v1/auth/email/verify/request
 
@@ -563,16 +578,16 @@ Resource Server 以 S2S API Key 查詢 Token 狀態，遵循 RFC 7662。
 **Path／Query Parameters：** 無。
 **Success：** `202 Accepted`，`{"data":{"accepted":true}}`。
 **Errors：** 空白或非法 Payload 為 `COMMON_VALIDATION_FAILED`。
-**Security：** Generic Response；Email 是否存在、是否已驗證或寄送是否成功都不可由 Response 判斷。
+**Security：** Generic Response；Email 是否存在、是否已驗證、是否被帳號級限流或寄送是否成功都不可由 Response 判斷。同帳號、同用途的限制預設為 1 分鐘冷卻、每小時 5 次、24 小時 10 次；成功重寄時舊 Token 立即失效。
 
 ### POST /v1/auth/email/verify/confirm
 
 **Headers：** `X-Session-Platform-Code`、`Content-Type: application/json`
-**Payload：** `{"token":"ev_opaque_value"}`。
+**Payload：** `{"token":"evt_opaque_value"}`。
 **Path／Query Parameters：** 無。
 **Success：** `200 OK`，`{"data":{"verified":true}}`。
 **Errors：** `AUTH_RECOVERY_TOKEN_INVALID`、`COMMON_VALIDATION_FAILED`。
-**Security：** Token 短效、一次性，完成後不可重用。
+**Security：** Token 短效、一次性且綁定 Realm，完成後不可重用。若 `verify_email` 是最後一個 Required Action，Email、Action 與帳號啟用在同一 Transaction 落地。
 
 ### POST /v1/auth/password/reset/request
 
@@ -581,7 +596,7 @@ Resource Server 以 S2S API Key 查詢 Token 狀態，遵循 RFC 7662。
 **Path／Query Parameters：** 無。
 **Success：** `202 Accepted`，`{"data":{"accepted":true}}`。
 **Errors：** 空白或非法 Payload 為 `COMMON_VALIDATION_FAILED`。
-**Security：** Generic Response，避免帳號枚舉。
+**Security：** Generic Response，避免帳號枚舉；與驗證信共用帳號級原子限流政策，但依 `password_reset` 用途獨立計數。成功重寄時舊 Token 立即失效。
 
 ### POST /v1/auth/password/reset/confirm
 
@@ -599,7 +614,7 @@ Resource Server 以 S2S API Key 查詢 Token 狀態，遵循 RFC 7662。
 **Path／Query Parameters：** 無。
 **Success：** `200 OK`，`{"data":{}}`。
 **Errors：** Payload 無效為 `COMMON_VALIDATION_FAILED`。
-**Security：** Generic Response；帳號是否存在或是否為高權限帳號不可辨識。
+**Security：** Generic Response；帳號是否存在或是否為高權限帳號不可辨識。只有具備已驗證 Primary Email 的高權限帳號才會建立請求並寄送 Token；Email Sender 未設定時此組端點不掛載。
 
 ### POST /v1/auth/privileged-recovery/complete
 

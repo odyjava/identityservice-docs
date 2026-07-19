@@ -198,7 +198,7 @@ pre{{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);
 </header>
 <div class="layout">
   <aside class="toc" aria-label="API 文件目錄"><h2>文件目錄</h2>{toc}</aside>
-  <main>{body}<footer>Identity Service 公開 API 文件 · 更新時間：2026-07-16（Asia/Taipei）</footer></main>
+  <main>{body}<footer>Identity Service 公開 API 文件 · 更新時間：2026-07-20（Asia/Taipei）</footer></main>
 </div>
 </body>
 </html>

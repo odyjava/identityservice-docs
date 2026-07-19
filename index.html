@@ -559,6 +559,18 @@ nav .links a:hover{color:var(--ink)}
   <h2 class="rv"><span class="tag">CHANGE LOG</span>更新紀錄</h2>
   <p class="sub rv">自 2026-07-16 Production 正式發佈起，公開記錄影響接入方的修復、驗證結果與必要調整。</p>
   <article class="change-entry rv">
+    <time datetime="2026-07-20">2026-07-20（Asia/Taipei）</time>
+    <h3>公開 Email 註冊、驗證寄信防濫用與退信抑制</h3>
+    <ul>
+      <li>新增 <code>POST /v1/auth/register</code>，以 Email 建立 pending member 帳號並寄送驗證信。</li>
+      <li>重複 Email 註冊與 Email／密碼復原請求使用 generic response，避免洩漏帳號是否存在。</li>
+      <li>註冊採同 Realm／來源與 Realm 全域共享限流；驗證及復原寄信採每帳號、每用途冷卻與配額。</li>
+      <li>成功重寄會使舊 Token 失效；完成 Email 驗證時以單一交易更新 Email、Required Action 與帳號狀態。</li>
+      <li>SES 的 Bounce／Complaint 事件會將目的信箱加入抑制名單，避免對無效或投訴地址重複寄送。</li>
+    </ul>
+    <p class="change-impact"><strong>接入方影響：</strong>需要自助註冊的 member Realm 可呼叫新端點；遇到 <code>429 COMMON_RATE_LIMITED</code> 時應遵守 <code>Retry-After</code>，不得立即重試。</p>
+  </article>
+  <article class="change-entry rv">
     <time datetime="2026-07-16">2026-07-16（Asia/Taipei）</time>
     <h3>Production 正式發佈與部署、OIDC 路由修復</h3>
     <ul>
@@ -624,6 +636,7 @@ nav .links a:hover{color:var(--ink)}
         <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/mfa/recovery</code></td><td>備援碼登入（手機遺失）</td><td class="lock">—</td></tr>
         <tr><td><span class="m get">GET</span></td><td><code>/v1/.well-known/jwks.json</code></td><td>公開驗章公鑰（JWKS）</td><td class="lock">—</td></tr>
         <tr><td colspan="4" style="padding-top:20px;color:var(--brand);font-weight:700;font-size:.82rem;letter-spacing:.06em;border-bottom:1px solid var(--brand)">帳號自助 /v1</td></tr>
+        <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/register</code></td><td>Email 自助註冊（generic response，建立 pending 帳號）</td><td class="lock">—</td></tr>
         <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/email/verify/request</code></td><td>請求 email 驗證信（generic response）</td><td class="lock">—</td></tr>
         <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/email/verify/confirm</code></td><td>以 token 確認 email</td><td class="lock">—</td></tr>
         <tr><td><span class="m post">POST</span></td><td><code>/v1/auth/password/reset/request</code></td><td>請求密碼重設信（generic response）</td><td class="lock">—</td></tr>

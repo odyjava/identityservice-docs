@@ -52,7 +52,8 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <a class="toc-l3" href="#post-v1-auth-mfa-activate">POST /v1/auth/mfa/activate</a>
 <a class="toc-l3" href="#post-v1-auth-mfa-disable">POST /v1/auth/mfa/disable</a>
 <a class="toc-l3" href="#post-v1-auth-mfa-recovery-codes-regenerate">POST /v1/auth/mfa/recovery-codes/regenerate</a>
-<a class="toc-l2" href="#8-email-密碼與高權限帳號復原">8. Email、密碼與高權限帳號復原</a>
+<a class="toc-l2" href="#8-註冊-email-密碼與高權限帳號復原">8. 註冊、Email、密碼與高權限帳號復原</a>
+<a class="toc-l3" href="#post-v1-auth-register">POST /v1/auth/register</a>
 <a class="toc-l3" href="#post-v1-auth-email-verify-request">POST /v1/auth/email/verify/request</a>
 <a class="toc-l3" href="#post-v1-auth-email-verify-confirm">POST /v1/auth/email/verify/confirm</a>
 <a class="toc-l3" href="#post-v1-auth-password-reset-request">POST /v1/auth/password/reset/request</a>
@@ -70,7 +71,7 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <a class="toc-l2" href="#12-錯誤碼">12. 錯誤碼</a>
 <a class="toc-l2" href="#13-最小串接檢查">13. 最小串接檢查</a></aside>
   <main><h1 id="identity-service-公開-api-文件">Identity Service 公開 API 文件</h1>
-<blockquote>Base URL：<code>https://identity.lifeintent.app</code><br>文件更新：2026-07-16（Asia/Taipei）<br>適用對象：接入平台的前端、後端、Resource Server 與 AI 開發代理人。<br>公開範圍不包含營運者專用 <code>/v1/admin/*</code> 與系統 Webhook <code>/webhooks/*</code>。</blockquote>
+<blockquote>Base URL：<code>https://identity.lifeintent.app</code><br>文件更新：2026-07-20（Asia/Taipei）<br>適用對象：接入平台的前端、後端、Resource Server 與 AI 開發代理人。<br>公開範圍不包含營運者專用 <code>/v1/admin/*</code> 與系統 Webhook <code>/webhooks/*</code>。</blockquote>
 <h2 id="1-共通規範">1. 共通規範</h2>
 <p>Identity Service 提供兩組 API：</p>
 <ul>
@@ -379,28 +380,36 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <pre><code class="language-json">{&quot;data&quot;:{&quot;recovery_codes&quot;:[&quot;XXXXX-XXXXX&quot;,&quot;...共 10 組&quot;]}}</code></pre>
 <p><strong>Errors：</strong> <code>AUTH_INVALID_CREDENTIALS</code>、<code>AUTH_MFA_INVALID_CODE</code>、<code>AUTH_TOKEN_INVALID</code>。</p>
 <p><strong>Security：</strong> 舊 Recovery Codes 全部失效；新 Codes 僅此一次明文回傳。</p>
-<h2 id="8-email-密碼與高權限帳號復原">8. Email、密碼與高權限帳號復原</h2>
+<h2 id="8-註冊-email-密碼與高權限帳號復原">8. 註冊、Email、密碼與高權限帳號復原</h2>
+<h3 id="post-v1-auth-register" class="endpoint-title">POST /v1/auth/register</h3>
+<p><strong>Headers：</strong> <code>X-Session-Platform-Code</code>、<code>Content-Type: application/json</code></p>
+<p><strong>Payload：</strong> <code>{"email":"alice@example.com","password":"correct-horse-battery"}</code>。</p>
+<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Success：<code>202 Accepted</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;accepted&quot;:true}}</code></pre>
+<p><strong>Errors：</strong> Email／密碼格式或 Realm 不允許自助註冊為 <code>COMMON_VALIDATION_FAILED</code>；已知外洩密碼為 <code>AUTH_PASSWORD_COMPROMISED</code>；共享配額超限為 <code>COMMON_RATE_LIMITED</code>。</p>
+<p><strong>Security：</strong> 成功與同 Realm 等價 Email 已存在回完全相同的狀態與 Body。密碼必須為 12～128 個 Unicode 字元；Account、Credential、Primary Email 與 Required Action 同一 Transaction 建立。只允許要求 Email 驗證、允許 pending 且不要求 MFA 才能啟用的 member Realm；<code>system</code> Realm 一律拒絕。註冊後寄信若暫時失敗，可安全呼叫重寄端點補償。所有 Lambda Runtime 共用 PostgreSQL 雙層限制：同 Realm／IP 預設 5 次每 10 分鐘、單一 Realm 預設 100 次每分鐘；只落地 IP 的 HMAC。</p>
 <h3 id="post-v1-auth-email-verify-request" class="endpoint-title">POST /v1/auth/email/verify/request</h3>
 <p><strong>Headers：</strong> <code>X-Session-Platform-Code</code>、<code>Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code>{"email":"alice@example.com"}</code>。</p>
 <p><strong>Path／Query Parameters：</strong> 無。</p>
 <p><strong>Success：</strong> <code>202 Accepted</code>，<code>{"data":{"accepted":true}}</code>。</p>
 <p><strong>Errors：</strong> 空白或非法 Payload 為 <code>COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Generic Response；Email 是否存在、是否已驗證或寄送是否成功都不可由 Response 判斷。</p>
+<p><strong>Security：</strong> Generic Response；Email 是否存在、是否已驗證、是否被帳號級限流或寄送是否成功都不可由 Response 判斷。同帳號、同用途的限制預設為 1 分鐘冷卻、每小時 5 次、24 小時 10 次；成功重寄時舊 Token 立即失效。</p>
 <h3 id="post-v1-auth-email-verify-confirm" class="endpoint-title">POST /v1/auth/email/verify/confirm</h3>
 <p><strong>Headers：</strong> <code>X-Session-Platform-Code</code>、<code>Content-Type: application/json</code></p>
-<p><strong>Payload：</strong> <code>{"token":"ev_opaque_value"}</code>。</p>
+<p><strong>Payload：</strong> <code>{"token":"evt_opaque_value"}</code>。</p>
 <p><strong>Path／Query Parameters：</strong> 無。</p>
 <p><strong>Success：</strong> <code>200 OK</code>，<code>{"data":{"verified":true}}</code>。</p>
 <p><strong>Errors：</strong> <code>AUTH_RECOVERY_TOKEN_INVALID</code>、<code>COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Token 短效、一次性，完成後不可重用。</p>
+<p><strong>Security：</strong> Token 短效、一次性且綁定 Realm，完成後不可重用。若 <code>verify_email</code> 是最後一個 Required Action，Email、Action 與帳號啟用在同一 Transaction 落地。</p>
 <h3 id="post-v1-auth-password-reset-request" class="endpoint-title">POST /v1/auth/password/reset/request</h3>
 <p><strong>Headers：</strong> <code>X-Session-Platform-Code</code>、<code>Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code>{"email":"alice@example.com"}</code>。</p>
 <p><strong>Path／Query Parameters：</strong> 無。</p>
 <p><strong>Success：</strong> <code>202 Accepted</code>，<code>{"data":{"accepted":true}}</code>。</p>
 <p><strong>Errors：</strong> 空白或非法 Payload 為 <code>COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Generic Response，避免帳號枚舉。</p>
+<p><strong>Security：</strong> Generic Response，避免帳號枚舉；與驗證信共用帳號級原子限流政策，但依 <code>password_reset</code> 用途獨立計數。成功重寄時舊 Token 立即失效。</p>
 <h3 id="post-v1-auth-password-reset-confirm" class="endpoint-title">POST /v1/auth/password/reset/confirm</h3>
 <p><strong>Headers：</strong> <code>X-Session-Platform-Code</code>、<code>Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code>{"token":"pr_opaque_value","new_password":"new-secure-password"}</code>。</p>
@@ -414,7 +423,7 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <p><strong>Path／Query Parameters：</strong> 無。</p>
 <p><strong>Success：</strong> <code>200 OK</code>，<code>{"data":{}}</code>。</p>
 <p><strong>Errors：</strong> Payload 無效為 <code>COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Generic Response；帳號是否存在或是否為高權限帳號不可辨識。</p>
+<p><strong>Security：</strong> Generic Response；帳號是否存在或是否為高權限帳號不可辨識。只有具備已驗證 Primary Email 的高權限帳號才會建立請求並寄送 Token；Email Sender 未設定時此組端點不掛載。</p>
 <h3 id="post-v1-auth-privileged-recovery-complete" class="endpoint-title">POST /v1/auth/privileged-recovery/complete</h3>
 <p>以 Email Token 加既有 Recovery Code 完成高權限帳號 MFA 復原。</p>
 <p><strong>Headers：</strong> <code>X-Session-Platform-Code</code>、<code>Content-Type: application/json</code></p>
@@ -499,7 +508,7 @@ curl https://identity.lifeintent.app/v1/.well-known/jwks.json \
 <li>自家平台帳密登入：<code>POST /v1/auth/login</code>。</li>
 <li>後端帳號供應：<code>POST /v1/internal/accounts</code>。</li>
 </ul>
-<p>完整端到端流程另見 <code>INTEGRATION.md</code>。</p><footer>Identity Service 公開 API 文件 · 更新時間：2026-07-16（Asia/Taipei）</footer></main>
+<p>完整端到端流程另見 <code>INTEGRATION.md</code>。</p><footer>Identity Service 公開 API 文件 · 更新時間：2026-07-20（Asia/Taipei）</footer></main>
 </div>
 </body>
 </html>

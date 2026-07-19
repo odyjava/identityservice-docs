@@ -31,6 +31,7 @@ POST /v1/auth/mfa/setup
 POST /v1/auth/mfa/activate
 POST /v1/auth/mfa/disable
 POST /v1/auth/mfa/recovery-codes/regenerate
+POST /v1/auth/register
 POST /v1/auth/email/verify/request
 POST /v1/auth/email/verify/confirm
 POST /v1/auth/password/reset/request
@@ -82,4 +83,3 @@ grep -Fq 'href="api.html"' index.html
 grep -Fq 'href="API.md"' index.html
 grep -Fq '2026-07-16' index.html
 grep -Fq 'download' index.html
-

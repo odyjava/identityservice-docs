@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Identity Service public API documentation covering headers, payloads, responses, error codes, and security requirements">
+<link rel="alternate" hreflang="zh-Hant" href="api.html">
+<link rel="alternate" hreflang="zh-Hans" href="api.zh-Hans.html">
+<link rel="alternate" hreflang="en" href="api.en.html">
+<link rel="alternate" hreflang="x-default" href="api.html">
+<title>Identity Service API Documentation</title>
+
+<style>
+:root{--bg:#07101f;--panel:#0d192d;--panel2:#111f36;--ink:#edf4ff;--muted:#9db0ca;--brand:#62d4ff;--accent:#8c7bff;--line:#263a57;--ok:#3ddc97;--post:#b79aff;--get:#62d4ff;--patch:#ffbf69}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#07101f,#0a1325 60%,#10162b);color:var(--ink);font:15px/1.72 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}code{font-family:"SFMono-Regular",Consolas,monospace}
+.top{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:13px 24px;background:rgba(7,16,31,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}.brand{font-weight:800;color:var(--ink)}.brand span{color:var(--brand)}.top nav{display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.download{padding:8px 13px;border:1px solid var(--brand);border-radius:9px}.language{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}.language a{padding:5px 8px;color:var(--muted);font-size:.82rem}.language a[aria-current="page"]{background:var(--brand);color:#06101d;text-decoration:none}
+.layout{max-width:1440px;margin:auto;display:grid;grid-template-columns:290px minmax(0,920px);gap:36px;padding:34px 28px 80px;justify-content:center}
+.toc{position:sticky;top:86px;height:calc(100vh - 110px);overflow:auto;padding:12px 18px 24px;border-right:1px solid var(--line)}.toc h2{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.toc a{display:block;color:var(--muted);padding:5px 0;line-height:1.35}.toc a:hover{color:var(--brand)}.toc-l3{padding-left:14px!important;font-size:.86rem}
+main{min-width:0}h1{font-size:clamp(2.1rem,5vw,3.8rem);line-height:1.08;margin:10px 0 26px;background:linear-gradient(90deg,#fff,var(--brand));-webkit-background-clip:text;color:transparent}h2{font-size:1.75rem;margin:64px 0 20px;padding-top:18px;border-top:1px solid var(--line)}h3{font-size:1.12rem;margin:38px 0 15px;padding:14px 17px;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px}h4{margin:26px 0 8px;color:var(--brand)}p,li{color:#d4e0ef}blockquote{margin:20px 0;padding:15px 18px;background:rgba(98,212,255,.08);border-left:4px solid var(--brand);border-radius:7px;color:#dcecff}hr{border:0;border-top:1px solid var(--line);margin:36px 0}
+pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);border-radius:10px;color:#d8f3ff;box-shadow:0 12px 30px rgba(0,0,0,.18)}p code,li code,td code,blockquote code{padding:2px 6px;background:#162640;border:1px solid #294362;border-radius:5px;color:#aeeaff}
+.table-wrap{overflow:auto;margin:14px 0 24px;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;background:var(--panel)}th,td{padding:11px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{color:var(--brand);background:#12213a;white-space:nowrap}tr:last-child td{border-bottom:0}
+.endpoint-title code{font-size:.95em;color:var(--ink)}footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted)}@media(max-width:920px){.top{align-items:flex-start;gap:10px}.top nav{flex-wrap:wrap;justify-content:flex-end}.layout{display:block;padding:20px 16px 60px}.toc{position:relative;top:auto;height:auto;border:1px solid var(--line);border-radius:10px;margin-bottom:28px;max-height:360px}h2{margin-top:45px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html">Identity<span>Service</span></a>
+  <nav><a href="index.html">Home</a><a href="api.en.html#13-minimum-integration-checklist">Quick start</a><span class="language" aria-label="Language"><a href="api.html" hreflang="zh-Hant" data-locale="zh-Hant">繁體中文</a><a href="api.zh-Hans.html" hreflang="zh-Hans" data-locale="zh-Hans">简体中文</a><a href="api.en.html" hreflang="en" data-locale="en" aria-current="page">English</a></span><a class="download" href="API.en.md" download>Download API.en.md</a></nav>
+</header>
+<div class="layout">
+  <aside class="toc" aria-label="API"><h2>Contents</h2><a class="toc-l2" href="#1-common-conventions">1. Common Conventions</a>
+<a class="toc-l2" href="#2-headers">2. Headers</a>
+<a class="toc-l2" href="#3-response-and-error-formatting">3. Response and Error Formatting</a>
+<a class="toc-l3" href="#3-1-v1-success-format">3.1 <code translate="no">/v1</code> Success Format</a>
+<a class="toc-l3" href="#3-2-v1-error-format">3.2 <code translate="no">/v1</code> Error Format</a>
+<a class="toc-l3" href="#3-3-oauth-error-formatting">3.3 OAuth Error Formatting</a>
+<a class="toc-l2" href="#4-oidc-discovery-and-jwks">4. OIDC Discovery and JWKS</a>
+<a class="toc-l3" href="#get-realms-slug-well-known-openid-configuration">GET /realms/{slug}/.well-known/openid-configuration</a>
+<a class="toc-l3" href="#get-realms-slug-well-known-jwks-json">GET /realms/{slug}/.well-known/jwks.json</a>
+<a class="toc-l2" href="#5-oauth-2-0-authorization-code-pkce">5. OAuth 2.0 Authorization Code + PKCE</a>
+<a class="toc-l3" href="#post-realms-slug-oauth-authorize">POST /realms/{slug}/oauth/authorize</a>
+<a class="toc-l3" href="#post-realms-slug-oauth-authorize-login">POST /realms/{slug}/oauth/authorize/login</a>
+<a class="toc-l3" href="#post-realms-slug-oauth-authorize-mfa">POST /realms/{slug}/oauth/authorize/mfa</a>
+<a class="toc-l3" href="#post-realms-slug-oauth-token">POST /realms/{slug}/oauth/token</a>
+<a class="toc-l3" href="#post-realms-slug-oauth-revoke">POST /realms/{slug}/oauth/revoke</a>
+<a class="toc-l3" href="#post-realms-slug-oauth-introspect">POST /realms/{slug}/oauth/introspect</a>
+<a class="toc-l2" href="#6-login-and-session">6. Login and Session</a>
+<a class="toc-l3" href="#post-v1-auth-login">POST /v1/auth/login</a>
+<a class="toc-l3" href="#post-v1-auth-refresh">POST /v1/auth/refresh</a>
+<a class="toc-l3" href="#post-v1-auth-logout">POST /v1/auth/logout</a>
+<a class="toc-l3" href="#get-v1-well-known-jwks-json">GET /v1/.well-known/jwks.json</a>
+<a class="toc-l2" href="#7-mfa">7. MFA</a>
+<a class="toc-l3" href="#post-v1-auth-mfa-verify">POST /v1/auth/mfa/verify</a>
+<a class="toc-l3" href="#post-v1-auth-mfa-recovery">POST /v1/auth/mfa/recovery</a>
+<a class="toc-l3" href="#post-v1-auth-mfa-setup">POST /v1/auth/mfa/setup</a>
+<a class="toc-l3" href="#post-v1-auth-mfa-activate">POST /v1/auth/mfa/activate</a>
+<a class="toc-l3" href="#post-v1-auth-mfa-disable">POST /v1/auth/mfa/disable</a>
+<a class="toc-l3" href="#post-v1-auth-mfa-recovery-codes-regenerate">POST /v1/auth/mfa/recovery-codes/regenerate</a>
+<a class="toc-l2" href="#8-registration-email-password-and-high-privilege-account-recovery">8. Registration, Email, Password and High Privilege Account Recovery</a>
+<a class="toc-l3" href="#post-v1-auth-register">POST /v1/auth/register</a>
+<a class="toc-l3" href="#post-v1-auth-email-verify-request">POST /v1/auth/email/verify/request</a>
+<a class="toc-l3" href="#post-v1-auth-email-verify-confirm">POST /v1/auth/email/verify/confirm</a>
+<a class="toc-l3" href="#post-v1-auth-password-reset-request">POST /v1/auth/password/reset/request</a>
+<a class="toc-l3" href="#post-v1-auth-password-reset-confirm">POST /v1/auth/password/reset/confirm</a>
+<a class="toc-l3" href="#post-v1-auth-privileged-recovery-request">POST /v1/auth/privileged-recovery/request</a>
+<a class="toc-l3" href="#post-v1-auth-privileged-recovery-complete">POST /v1/auth/privileged-recovery/complete</a>
+<a class="toc-l3" href="#post-v1-auth-privileged-recovery-complete-with-approval">POST /v1/auth/privileged-recovery/complete-with-approval</a>
+<a class="toc-l2" href="#9-s2s-account-provisioning">9. S2S Account Provisioning</a>
+<a class="toc-l3" href="#post-v1-internal-accounts">POST /v1/internal/accounts</a>
+<a class="toc-l3" href="#patch-v1-internal-accounts-sub">PATCH /v1/internal/accounts/{sub}</a>
+<a class="toc-l2" href="#10-health-check">10. Health Check</a>
+<a class="toc-l3" href="#get-livez">GET /livez</a>
+<a class="toc-l3" href="#get-readyz">GET /readyz</a>
+<a class="toc-l2" href="#11-token-and-security-requirements">11. Token and Security Requirements</a>
+<a class="toc-l2" href="#12-error-code">12. Error code</a>
+<a class="toc-l2" href="#13-minimum-integration-checklist">13. Minimum Integration Checklist</a></aside>
+  <main><h1 id="identity-service-public-api-documentation">Identity Service Public API Documentation</h1>
+<blockquote>Base URL: <code translate="no">https://identity.lifeintent.app</code><br>Last updated: 2026-07-20 (Asia/Taipei)<br>Applicable audience: Front-end, back-end, Resource Server, and AI development agents accessing the platform.<br>The public scope excludes operator-only <code translate="no">/v1/admin/*</code> and system webhook <code translate="no">/webhooks/*</code>.</blockquote>
+<h2 id="1-common-conventions">1. Common Conventions</h2>
+<p>Identity Service provides two sets of APIs:</p>
+<ul>
+<li><code translate="no">/realms/{slug}/*</code>: Standard OIDC/OAuth 2.0, Realm is included in the URL, <code translate="no">X-Session-Platform-Code</code> is not used.</li>
+<li><code translate="no">/v1/*</code>: platform login, account self-service, MFA, and S2S account provisioning. Every request must include <code translate="no">X-Session-Platform-Code</code>.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr><th>Item</th><th>Requirement</th></tr></thead><tbody><tr><td>TLS</td><td>All endpoints use HTTPS only</td></tr><tr><td>JSON</td><td>UTF-8; Common Payload Endpoints Use <code translate="no">application/json</code></td></tr><tr><td>OAuth Form</td><td><code translate="no">/oauth/token</code>, <code translate="no">/oauth/revoke</code>, <code translate="no">/oauth/introspect</code> using <code translate="no">application/x-www-form-urlencoded</code></td></tr><tr><td>Unknown JSON field</td><td>Reject and return validation error</td></tr><tr><td>Maximum Request Body</td><td>64 KiB</td></tr><tr><td>Time</td><td>JWT time field uses Unix timestamp (seconds)</td></tr><tr><td>Management API</td><td><code translate="no">/v1/admin/*</code> is outside the public integration scope</td></tr></tbody></table></div>
+<h2 id="2-headers">2. Headers</h2>
+<div class="table-wrap"><table><thead><tr><th>Header</th><th>Scope</th><th>Required</th><th>Format and constraints</th></tr></thead><tbody><tr><td><code translate="no">Content-Type</code></td><td>Payload requests</td><td>Required</td><td>General API: <code translate="no">application/json</code>; OAuth form endpoint: <code translate="no">application/x-www-form-urlencoded</code></td></tr><tr><td><code translate="no">Accept</code></td><td>ALL</td><td>OPTIONAL</td><td>RECOMMEND <code translate="no">application/json</code></td></tr><tr><td><code translate="no">Accept-Language</code></td><td><code translate="no">/v1/*</code></td><td>OPTIONAL</td><td><code translate="no">zh-TW</code> OR <code translate="no">en</code>; OTHER VALUES RETURNED IN ENGLISH</td></tr><tr><td><code translate="no">X-Session-Platform-Code</code></td><td><code translate="no">/v1/*</code></td><td>Required</td><td>Operator-issued platform code/"realm slug” such as <code translate="no">topinkiwi</code></td></tr><tr><td><code translate="no">Authorization</code></td><td>Bearer JWT, S2S API Key</td><td>By Endpoint</td><td><code translate="no">Bearer &lt;access_token&gt;</code> or <code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">X-Request-Id</code></td><td>All</td><td>Optional</td><td>1—128 characters, only alphanumeric, <code translate="no">.</code>, <code translate="no">_</code>, <code translate="no">-</code>; valid values are returned in Response Header</td></tr></tbody></table></div>
+<p>Note:</p>
+<ul>
+<li><code translate="no">/realms/{slug}/*</code> <code translate="no">X-Session-Platform-Code</code> IS NOT REQUIRED.</li>
+<li><code translate="no">/v1/*</code> requests must include <code translate="no">X-Session-Platform-Code</code> even when no authentication is required.</li>
+<li>The S2S API Key can only be placed in the backend Secret Management System, not in the browser, Mobile App, source code or Log.</li>
+<li>Error Response's <code translate="no">trace_id</code> corresponds to <code translate="no">X-Request-Id</code>, please provide it together when reporting problems.</li>
+</ul>
+<h2 id="3-response-and-error-formatting">3. Response and Error Formatting</h2>
+<h3 id="3-1-v1-success-format">3.1 <code translate="no">/v1</code> Success Format</h3>
+<p>Except for <code translate="no">204 No Content</code>, successful responses wrap their payload in <code translate="no">data</code>:</p>
+<pre><code class="language-json">{
+  &quot;data&quot;: {
+    &quot;example&quot;: true
+  }
+}</code></pre>
+<h3 id="3-2-v1-error-format">3.2 <code translate="no">/v1</code> Error Format</h3>
+<pre><code class="language-json">{
+  &quot;error&quot;: {
+    &quot;code&quot;: &quot;COMMON_VALIDATION_FAILED&quot;,
+    &quot;id&quot;: 1001,
+    &quot;message&quot;: &quot;The request format or field is invalid&quot;,
+    &quot;trace_id&quot;: &quot;5b5aa30b-00fd-46ab-a836-322c779ff2c8&quot;
+  }
+}</code></pre>
+<p>Clients must branch on the stable <code translate="no">code</code> value; <code translate="no">message</code> is for display only. <code translate="no">429 COMMON_RATE_LIMITED</code> comes with the <code translate="no">Retry-After</code> Response Header. Clients must wait for the number of seconds in <code translate="no">Retry-After</code> and use exponential backoff.</p>
+<h3 id="3-3-oauth-error-formatting">3.3 OAuth Error Formatting</h3>
+<p><code translate="no">/realms/{slug}/oauth/*</code> complies with OAuth JSON error and does not use <code translate="no">/v1</code> envelope:</p>
+<pre><code class="language-json">{
+  &quot;error&quot;: &quot;invalid_grant&quot;,
+  &quot;error_description&quot;: &quot;the authorization grant is invalid&quot;
+}</code></pre>
+<p>OAuth token and sensitive-data responses include <code translate="no">Cache-Control: no-store</code>, <code translate="no">Pragma: no-cache</code>.</p>
+<h2 id="4-oidc-discovery-and-jwks">4. OIDC Discovery and JWKS</h2>
+<h3 id="get-realms-slug-well-known-openid-configuration" class="endpoint-title">GET /realms/{slug}/.well-known/openid-configuration</h3>
+<p>Get Realm's OIDC metadata.</p>
+<p><strong>Headers:</strong> <code translate="no">Accept: application/json</code> (Optional)</p>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>, Operator-issued Realm slug.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload:</strong> None.</p>
+<p><strong>Authentication:</strong> None.</p>
+<pre><code class="language-bash">curl https://identity.lifeintent.app/realms/topinkiwi/.well-known/openid-configuration</code></pre>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{
+  &quot;issuer&quot;: &quot;https://identity.lifeintent.app/realms/topinkiwi&quot;,
+  &quot;jwks_uri&quot;: &quot;https://identity.lifeintent.app/realms/topinkiwi/.well-known/jwks.json&quot;,
+  &quot;authorization_endpoint&quot;: &quot;https://identity.lifeintent.app/realms/topinkiwi/oauth/authorize&quot;,
+  &quot;token_endpoint&quot;: &quot;https://identity.lifeintent.app/realms/topinkiwi/oauth/token&quot;,
+  &quot;response_types_supported&quot;: [&quot;code&quot;],
+  &quot;grant_types_supported&quot;: [&quot;authorization_code&quot;, &quot;refresh_token&quot;],
+  &quot;code_challenge_methods_supported&quot;: [&quot;S256&quot;],
+  &quot;id_token_signing_alg_values_supported&quot;: [&quot;RS256&quot;],
+  &quot;subject_types_supported&quot;: [&quot;public&quot;]
+}</code></pre>
+<p><strong>Errors:</strong> A missing or suspended Realm and an invalid slug all return the same <code translate="no">404 COMMON_NOT_FOUND</code> to avoid leaking Realm status.</p>
+<p><strong>Security:</strong> Use the returned endpoints as-is; do not construct or rewrite them as <code translate="no">/v1/realms/*</code>.</p>
+<h3 id="get-realms-slug-well-known-jwks-json" class="endpoint-title">GET /realms/{slug}/.well-known/jwks.json</h3>
+<p>Obtain the RS256 public seal key for the Realm.</p>
+<p><strong>Headers:</strong> <code translate="no">Accept: application/json</code> (Optional)</p>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload:</strong> None.</p>
+<p><strong>Authentication:</strong> None.</p>
+<p><strong>Success:<code translate="no">200 OK</code>,<code translate="no">Cache-Control: public, max-age=300</code></strong></p>
+<pre><code class="language-json">{
+  &quot;keys&quot;: [
+    {
+      &quot;kid&quot;: &quot;key-id&quot;,
+      &quot;kty&quot;: &quot;RSA&quot;,
+      &quot;alg&quot;: &quot;RS256&quot;,
+      &quot;use&quot;: &quot;sig&quot;,
+      &quot;n&quot;: &quot;base64url-modulus&quot;,
+      &quot;e&quot;: &quot;AQAB&quot;
+    }
+  ]
+}</code></pre>
+<p><strong>Errors:</strong> Same as Discovery.</p>
+<p><strong>Security:</strong> JWKS contains public materials only; select the <code translate="no">kid</code> key in the JWT header when authenticating, and only <code translate="no">RS256</code> is accepted.</p>
+<h2 id="5-oauth-2-0-authorization-code-pkce">5. OAuth 2.0 Authorization Code + PKCE</h2>
+<p>All endpoints use <code translate="no">/realms/{slug}</code>, without <code translate="no">X-Session-Platform-Code</code>. Public clients do not have Client Secret and must use PKCE <code translate="no">S256</code>.</p>
+<h3 id="post-realms-slug-oauth-authorize" class="endpoint-title">POST /realms/{slug}/oauth/authorize</h3>
+<p>Create short-term, one-time license transactions.</p>
+<p><strong>Headers</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Name</th><th>Required</th><th>Value</th></tr></thead><tbody><tr><td><code translate="no">Content-Type</code></td><td>YES</td><td><code translate="no">application/json</code></td></tr></tbody></table></div>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Fields</th><th>Type</th><th>Required</th><th>Restrictions</th></tr></thead><tbody><tr><td><code translate="no">response_type</code></td><td>string</td><td>Yes</td><td>Fixed <code translate="no">code</code></td></tr><tr><td><code translate="no">client_id</code></td><td>string</td><td>Yes</td><td>Registered client ID of the operator</td></tr><tr><td><code translate="no">redirect_uri</code></td><td>string</td><td>Yes</td><td>Must Match with Register Value Exact</td></tr><tr><td><code translate="no">scope</code></td><td>string</td><td>Yes</td><td>Blank delimited; allowed scope must be included</td></tr><tr><td><code translate="no">state</code></td><td>string</td><td>Yes</td><td>Client-generated high entropy random value</td></tr><tr><td><code translate="no">nonce</code></td><td>string</td><td>Yes</td><td>Client generated, then used to validate the ID Token</td></tr><tr><td><code translate="no">code_challenge</code></td><td>string</td><td>Yes</td><td><code translate="no">BASE64URL(SHA256(code_verifier))</code></td></tr><tr><td><code translate="no">code_challenge_method</code></td><td>string</td><td>Yes</td><td>Fixed <code translate="no">S256</code></td></tr></tbody></table></div>
+<pre><code class="language-json">{
+  &quot;response_type&quot;: &quot;code&quot;,
+  &quot;client_id&quot;: &quot;topinkiwi-web&quot;,
+  &quot;redirect_uri&quot;: &quot;https://app.example.com/callback&quot;,
+  &quot;scope&quot;: &quot;openid profile&quot;,
+  &quot;state&quot;: &quot;random-state&quot;,
+  &quot;nonce&quot;: &quot;random-nonce&quot;,
+  &quot;code_challenge&quot;: &quot;base64url-sha256&quot;,
+  &quot;code_challenge_method&quot;: &quot;S256&quot;
+}</code></pre>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{
+  &quot;transaction&quot;: &quot;txn_opaque_value&quot;,
+  &quot;expires_in&quot;: 300
+}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">invalid_request</code>, <code translate="no">unauthorized_client</code>, <code translate="no">invalid_scope</code>; A missing or suspended Realm returns the same <code translate="no">404 invalid_request</code>.</p>
+<p><strong>Security:</strong> <code translate="no">state</code>, <code translate="no">nonce</code>, <code translate="no">code_verifier</code> must be generated by CSPRNG; passwords or transaction handles must not be recorded.</p>
+<h3 id="post-realms-slug-oauth-authorize-login" class="endpoint-title">POST /realms/{slug}/oauth/authorize/login</h3>
+<p>Authorize transactions confidentially; if the account has MFA enabled, return to the MFA challenge.</p>
+<p><strong>Headers:</strong> <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Fields</th><th>Type</th><th>Required</th><th>Help</th></tr></thead><tbody><tr><td><code translate="no">transaction</code></td><td>string</td><td>Yes</td><td>authorize return one-time transaction handle</td></tr><tr><td><code translate="no">tenant</code></td><td>string</td><td>Yes</td><td>Tenantless Airspace String</td></tr><tr><td><code translate="no">username</code></td><td>string</td><td>Yes</td><td>User Account</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>Yes</td><td>User Password</td></tr></tbody></table></div>
+<pre><code class="language-json">{
+  &quot;transaction&quot;: &quot;txn_opaque_value&quot;,
+  &quot;tenant&quot;: &quot;&quot;,
+  &quot;username&quot;: &quot;alice&quot;,
+  &quot;password&quot;: &quot;S3cure-Pass!&quot;
+}</code></pre>
+<p><strong>Success A:<code translate="no">200 OK</code>,No MFA</strong></p>
+<pre><code class="language-json">{
+  &quot;code&quot;: &quot;authorization-code&quot;,
+  &quot;state&quot;: &quot;random-state&quot;,
+  &quot;redirect_uri&quot;: &quot;https://app.example.com/callback&quot;
+}</code></pre>
+<p><strong>Success B:<code translate="no">200 OK</code>, requires MFA</strong></p>
+<pre><code class="language-json">{
+  &quot;mfa_required&quot;: true,
+  &quot;mfa_token&quot;: &quot;mfa_opaque_value&quot;
+}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">invalid_grant</code>, <code translate="no">access_denied</code>, <code translate="no">invalid_transaction</code>.</p>
+<p><strong>Security:</strong> The client must match <code translate="no">state</code> after receiving the result, the authorization code is short-lived and single-use.</p>
+<h3 id="post-realms-slug-oauth-authorize-mfa" class="endpoint-title">POST /realms/{slug}/oauth/authorize/mfa</h3>
+<p>Complete an authorized transaction with TOTP using the MFA challenge.</p>
+<p><strong>Headers:</strong> <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload</strong></p>
+<pre><code class="language-json">{
+  &quot;transaction&quot;: &quot;txn_opaque_value&quot;,
+  &quot;mfa_token&quot;: &quot;mfa_opaque_value&quot;,
+  &quot;code&quot;: &quot;123456&quot;
+}</code></pre>
+<p>All three fields are required strings; <code translate="no">code</code> is the current 6-digit number of the validator.</p>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{
+  &quot;code&quot;: &quot;authorization-code&quot;,
+  &quot;state&quot;: &quot;random-state&quot;,
+  &quot;redirect_uri&quot;: &quot;https://app.example.com/callback&quot;
+}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">invalid_grant</code>, <code translate="no">invalid_transaction</code>, <code translate="no">access_denied</code>.</p>
+<p><strong>Security:</strong> <code translate="no">transaction</code>, <code translate="no">mfa_token</code> and TOTP challenge are short-lived and one-time.</p>
+<h3 id="post-realms-slug-oauth-token" class="endpoint-title">POST /realms/{slug}/oauth/token</h3>
+<p>Get Tokens with Authorization Code+PKCE or Refresh Token.</p>
+<p><strong>Headers:</strong> <code translate="no">Content-Type: application/x-www-form-urlencoded</code></p>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Authentication:</strong> Public clients do not use Client Secret.</p>
+<p><strong>Authorization Code Payload</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Field</th><th>Required</th><th>Value</th></tr></thead><tbody><tr><td><code translate="no">grant_type</code></td><td>YES</td><td><code translate="no">authorization_code</code></td></tr><tr><td><code translate="no">code</code></td><td>YES</td><td>ONE-TIME AUTHORIZATION CODE OBTAINED IN THE PREVIOUS STEP</td></tr><tr><td><code translate="no">redirect_uri</code></td><td>Yes</td><td>Must be exactly the same as authorize</td></tr><tr><td><code translate="no">client_id</code></td><td>Yes</td><td>Registered client ID</td></tr><tr><td><code translate="no">code_verifier</code></td><td>Yes</td><td>PKCE verifier corresponding to original <code translate="no">code_challenge</code></td></tr></tbody></table></div>
+<pre><code class="language-bash">curl -X POST https://identity.lifeintent.app/realms/topinkiwi/oauth/token \
+  -H &quot;Content-Type: application/x-www-form-urlencoded&quot; \
+  -d &quot;grant_type=authorization_code&quot; \
+  -d &quot;code=authorization-code&quot; \
+  -d &quot;redirect_uri=https://app.example.com/callback&quot; \
+  -d &quot;client_id=topinkiwi-web&quot; \
+  -d &quot;code_verifier=original-verifier&quot;</code></pre>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{
+  &quot;access_token&quot;: &quot;eyJ...&quot;,
+  &quot;token_type&quot;: &quot;Bearer&quot;,
+  &quot;expires_in&quot;: 300,
+  &quot;id_token&quot;: &quot;eyJ...&quot;,
+  &quot;scope&quot;: &quot;openid profile&quot;,
+  &quot;refresh_token&quot;: &quot;ort_selector.secret&quot;
+}</code></pre>
+<p><strong>Refresh Token Payload</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Field</th><th>Required</th><th>Value</th></tr></thead><tbody><tr><td><code translate="no">grant_type</code></td><td>YES</td><td><code translate="no">refresh_token</code></td></tr><tr><td><code translate="no">refresh_token</code></td><td>Yes</td><td>Recently Obtained OAuth Refresh Token</td></tr><tr><td><code translate="no">client_id</code></td><td>Yes</td><td>Original client ID</td></tr></tbody></table></div>
+<p>Refresh successfully refreshed <code translate="no">access_token</code>, <code translate="no">refresh_token</code>, <code translate="no">token_type</code>, <code translate="no">expires_in</code>, <code translate="no">scope</code>, and did not restore <code translate="no">id_token</code>.</p>
+<p><strong>Errors:</strong> <code translate="no">invalid_request</code>, <code translate="no">invalid_client</code>, <code translate="no">invalid_grant</code>, <code translate="no">unsupported_grant_type</code>.</p>
+<p><strong>Security:</strong> The Refresh Token rotates after every use; only the newest token may be retained. Authorization Code cannot be reused after authentication fails.</p>
+<h3 id="post-realms-slug-oauth-revoke" class="endpoint-title">POST /realms/{slug}/oauth/revoke</h3>
+<p>Revoke the Access or Refresh Token in accordance with RFC 7009.</p>
+<p><strong>Headers:</strong> <code translate="no">Content-Type: application/x-www-form-urlencoded</code></p>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Fields</th><th>Required</th><th>Help</th></tr></thead><tbody><tr><td><code translate="no">token</code></td><td>Yes</td><td>Tokens to be withdrawn</td></tr><tr><td><code translate="no">client_id</code></td><td>Yes</td><td>Token belongs to client</td></tr></tbody></table></div>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{}</code></pre>
+<p>Whether tokens exist returns the same success result.</p>
+<p><strong>Errors:</strong> A missing or disabled client returns <code translate="no">401 invalid_client</code>; format error returns <code translate="no">invalid_request</code>.</p>
+<p><strong>Security:</strong> Cannot infer whether a Token existed by Response.</p>
+<h3 id="post-realms-slug-oauth-introspect" class="endpoint-title">POST /realms/{slug}/oauth/introspect</h3>
+<p>Resource Server queries Token status with S2S API Key in accordance with RFC 7662.</p>
+<p><strong>Headers</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Name</th><th>Required</th><th>Value</th></tr></thead><tbody><tr><td><code translate="no">Authorization</code></td><td>YES</td><td><code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">Content-Type</code></td><td>YES</td><td><code translate="no">application/x-www-form-urlencoded</code></td></tr></tbody></table></div>
+<p><strong>Path Parameters:</strong> <code translate="no">slug</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload:</strong> <code translate="no">token=&lt;access_or_refresh_token&gt;</code>.</p>
+<p><strong>Inactive:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;active&quot;: false}</code></pre>
+<p><strong>Active:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{
+  &quot;active&quot;: true,
+  &quot;scope&quot;: &quot;openid profile&quot;,
+  &quot;client_id&quot;: &quot;topinkiwi-web&quot;,
+  &quot;sub&quot;: &quot;acc_01...&quot;,
+  &quot;exp&quot;: 1780000000,
+  &quot;iat&quot;: 1779999700,
+  &quot;sid&quot;: &quot;ses_01...&quot;,
+  &quot;token_type&quot;: &quot;access_token&quot;,
+  &quot;iss&quot;: &quot;https://identity.lifeintent.app/realms/topinkiwi&quot;
+}</code></pre>
+<p><strong>Errors:</strong> Missing, incorrect, or cross-Realm API Key always returns the same <code translate="no">401 invalid_client</code>.</p>
+<p><strong>Security:</strong> General requests prioritize local JWKS validation; Introspection is only required when instant revocation status is required.</p>
+<h2 id="6-login-and-session">6. Login and Session</h2>
+<p>All <code translate="no">/v1/*</code> endpoints in this chapter must carry <code translate="no">X-Session-Platform-Code</code>.</p>
+<h3 id="post-v1-auth-login" class="endpoint-title">POST /v1/auth/login</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Path Parameters:</strong> None.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Fields</th><th>Type</th><th>Required</th><th>Help</th></tr></thead><tbody><tr><td><code translate="no">username</code></td><td>string</td><td>Yes</td><td>Account</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>Yes</td><td>Password</td></tr><tr><td><code translate="no">tenant</code></td><td>string</td><td>Yes</td><td>Tenantless Timeline <code translate="no">""</code></td></tr></tbody></table></div>
+<pre><code class="language-json">{&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;S3cure-Pass!&quot;,&quot;tenant&quot;:&quot;&quot;}</code></pre>
+<p><strong>Success A:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;access_token&quot;:&quot;eyJ...&quot;,&quot;refresh_token&quot;:&quot;rt_...&quot;,&quot;expires_in&quot;:2700}}</code></pre>
+<p><strong>Success B:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;mfa_required&quot;:true,&quot;mfa_token&quot;:&quot;mfa_...&quot;}}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">AUTH_INVALID_CREDENTIALS</code>, <code translate="no">AUTH_ACCOUNT_DISABLED</code>, <code translate="no">AUTH_ACCOUNT_LOCKED</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>, <code translate="no">AUTH_PLATFORM_UNKNOWN</code>, <code translate="no">COMMON_RATE_LIMITED</code>.</p>
+<p><strong>Security:</strong> Response with <code translate="no">Cache-Control: no-store</code>; account non-existence is indistinguishable from password errors.</p>
+<h3 id="post-v1-auth-refresh" class="endpoint-title">POST /v1/auth/refresh</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Payload</strong></p>
+<pre><code class="language-json">{&quot;refresh_token&quot;:&quot;rt_...&quot;}</code></pre>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;access_token&quot;:&quot;eyJ...&quot;,&quot;refresh_token&quot;:&quot;rt_new...&quot;,&quot;expires_in&quot;:2700}}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">AUTH_REFRESH_INVALID</code>, <code translate="no">AUTH_REFRESH_REUSED</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Refresh Token rotates immediately each time it is reissued; reusing old tokens will revoke all Refresh Tokens in that account.</p>
+<h3 id="post-v1-auth-logout" class="endpoint-title">POST /v1/auth/logout</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Payload:</strong> <code translate="no">{"refresh_token":"rt_..."}</code>.</p>
+<p>**Success:<code translate="no">204 No Content</code>,No Response body.</p>
+<p><strong>Errors:</strong> <code translate="no">COMMON_VALIDATION_FAILED</code> when payload is invalid.</p>
+<p><strong>Security:</strong> Valid or non-existent Tokens should not cause recognizable differences.</p>
+<h3 id="get-v1-well-known-jwks-json" class="endpoint-title">GET /v1/.well-known/jwks.json</h3>
+<p>Obtain the public seal key for the platform profile.</p>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code></p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Payload:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>, formatted as Realm JWKS,<code translate="no">Cache-Control: public, max-age=300</code>.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_PLATFORM_UNKNOWN</code>, <code translate="no">COMMON_INTERNAL_ERROR</code>.</p>
+<p><strong>Security:</strong> <code translate="no">/v1</code> Access Token authentication requires checking both RS256 signature, <code translate="no">iss</code>, <code translate="no">aud</code>, <code translate="no">exp</code> and allowed <code translate="no">typ</code>.</p>
+<h2 id="7-mfa">7. MFA</h2>
+<h3 id="post-v1-auth-mfa-verify" class="endpoint-title">POST /v1/auth/mfa/verify</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"mfa_token":"mfa_...","code":"123456"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>, returns TokenResponse.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_MFA_INVALID_CODE</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> <code translate="no">mfa_token</code> 5 minutes, one-time; authentication failure will also consume.</p>
+<h3 id="post-v1-auth-mfa-recovery" class="endpoint-title">POST /v1/auth/mfa/recovery</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"mfa_token":"mfa_...","recovery_code":"XXXXX-XXXXX"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>, returns TokenResponse.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_RECOVERY_CODE_INVALID</code>, <code translate="no">AUTH_MFA_INVALID_CODE</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> A recovery code becomes invalid immediately after use.</p>
+<h3 id="post-v1-auth-mfa-setup" class="endpoint-title">POST /v1/auth/mfa/setup</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Authorization: Bearer &lt;access_token&gt;</code></p>
+<p><strong>Content-Type./Payload:</strong> None.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;secret&quot;:&quot;BASE32SECRET&quot;,&quot;otpauth_uri&quot;:&quot;otpauth://totp/...&quot;}}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">AUTH_TOKEN_INVALID</code>, <code translate="no">AUTH_TOKEN_EXPIRED</code>, <code translate="no">AUTH_TOKEN_REVOKED</code>, <code translate="no">AUTH_MFA_ALREADY_ENABLED</code>.</p>
+<p><strong>Security:</strong> <code translate="no">secret</code> is only used for the binding screen at the same time, no Log is allowed to be written.</p>
+<h3 id="post-v1-auth-mfa-activate" class="endpoint-title">POST /v1/auth/mfa/activate</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Authorization: Bearer &lt;access_token&gt;</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"code":"123456"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;enabled&quot;:true,&quot;recovery_codes&quot;:[&quot;XXXXX-XXXXX&quot;,&quot;...10 total&quot;]}}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">AUTH_MFA_INVALID_CODE</code>, <code translate="no">AUTH_TOKEN_INVALID</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Recovery Codes are returned only once, and the Client must deliver the user's secure save immediately.</p>
+<h3 id="post-v1-auth-mfa-disable" class="endpoint-title">POST /v1/auth/mfa/disable</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Authorization: Bearer &lt;access_token&gt;</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"password":"current-password","code":"123456"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"data":{"enabled":false}}</code>.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_INVALID_CREDENTIALS</code>, <code translate="no">AUTH_MFA_INVALID_CODE</code>, <code translate="no">AUTH_TOKEN_INVALID</code>.</p>
+<p><strong>Security:</strong> Disabling will void existing Recovery Codes.</p>
+<h3 id="post-v1-auth-mfa-recovery-codes-regenerate" class="endpoint-title">POST /v1/auth/mfa/recovery-codes/regenerate</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Authorization: Bearer &lt;access_token&gt;</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"password":"current-password","code":"123456"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;recovery_codes&quot;:[&quot;XXXXX-XXXXX&quot;,&quot;...10 total&quot;]}}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">AUTH_INVALID_CREDENTIALS</code>, <code translate="no">AUTH_MFA_INVALID_CODE</code>, <code translate="no">AUTH_TOKEN_INVALID</code>.</p>
+<p><strong>Security:</strong> All previous recovery codes become invalid; new codes are returned in plaintext only once.</p>
+<h2 id="8-registration-email-password-and-high-privilege-account-recovery">8. Registration, Email, Password and High Privilege Account Recovery</h2>
+<h3 id="post-v1-auth-register" class="endpoint-title">POST /v1/auth/register</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"email":"alice@example.com","password":"correct-horse-battery"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:<code translate="no">202 Accepted</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;accepted&quot;:true}}</code></pre>
+<p><strong>Errors:</strong> Email/password format or Realm does not allow self-registration as <code translate="no">COMMON_VALIDATION_FAILED</code>; a password found in a known breach is <code translate="no">AUTH_PASSWORD_COMPROMISED</code>; shared quota exhaustion is <code translate="no">COMMON_RATE_LIMITED</code>.</p>
+<p><strong>Security:</strong> A successful registration and an equivalent existing email in the same Realm return exactly the same status and body. Passwords must be between 12 and 128 Unicode characters; Account, Credential, Primary Email are created in the same transaction as Required Action. Self-registration is allowed only for member Realms that require email verification, allow pending accounts, and do not require MFA for activation; <code translate="no">system</code> Realm always refuses. If email delivery temporarily fails after registration, the resend endpoint can be called safely. All Lambda Runtimes share PostgreSQL dual-layer restrictions: by default, 5 attempts per Realm/IP every 10 minutes and 100 attempts per Realm every minute; only an HMAC of the source IP is stored.</p>
+<h3 id="post-v1-auth-email-verify-request" class="endpoint-title">POST /v1/auth/email/verify/request</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"email":"alice@example.com"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">202 Accepted</code>,<code translate="no">{"data":{"accepted":true}}</code>.</p>
+<p><strong>Errors:</strong> An empty or invalid payload is <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Generic Response; The response does not reveal whether the email exists, is verified, was account-level rate-limited, or was delivered successfully. For the same account and purpose, the defaults are a 1-minute cooldown, 5 messages per hour, and 10 messages per 24 hours. A successful resend immediately invalidates the previous token.</p>
+<h3 id="post-v1-auth-email-verify-confirm" class="endpoint-title">POST /v1/auth/email/verify/confirm</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"token":"evt_opaque_value"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"data":{"verified":true}}</code>.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_RECOVERY_TOKEN_INVALID</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Tokens are short-lived, one-time, and Realm-bound, and cannot be reused after completion. If <code translate="no">verify_email</code> is the last Required Action, Email, Action, and Account are updated in the same transaction.</p>
+<h3 id="post-v1-auth-password-reset-request" class="endpoint-title">POST /v1/auth/password/reset/request</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"email":"alice@example.com"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">202 Accepted</code>,<code translate="no">{"data":{"accepted":true}}</code>.</p>
+<p><strong>Errors:</strong> An empty or invalid payload is <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Generic Response, avoids account enumeration; uses the same atomic account-level rate-limit policy as verification email, but counts independently for <code translate="no">password_reset</code> purposes. The old Token will expire immediately upon successful resend.</p>
+<h3 id="post-v1-auth-password-reset-confirm" class="endpoint-title">POST /v1/auth/password/reset/confirm</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"token":"pr_opaque_value","new_password":"new-secure-password"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"data":{"reset":true}}</code>.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_RECOVERY_TOKEN_INVALID</code>, <code translate="no">AUTH_PASSWORD_COMPROMISED</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Revoke the existing Refresh Token for the account after success; the new password must not appear in the known-breach list.</p>
+<h3 id="post-v1-auth-privileged-recovery-request" class="endpoint-title">POST /v1/auth/privileged-recovery/request</h3>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"tenant":"","username":"staff-user"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"data":{}}</code>.</p>
+<p><strong>Errors:</strong> Invalid payload for <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Generic Response; the response does not reveal whether the account exists or is privileged. Only high-privilege accounts with a verified primary email create requests and send tokens; this endpoint is not mounted when Email Sender is not configured.</p>
+<h3 id="post-v1-auth-privileged-recovery-complete" class="endpoint-title">POST /v1/auth/privileged-recovery/complete</h3>
+<p>Complete high-privilege account MFA recovery with Email Token plus existing Recovery Code.</p>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"token":"pvr_opaque_value","recovery_code":"XXXXX-XXXXX"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"data":{}}</code>.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_PRIVILEGED_RECOVERY_INVALID</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Token and Recovery Code must be valid; any failure converges to the same error, avoiding side channels.</p>
+<h3 id="post-v1-auth-privileged-recovery-complete-with-approval" class="endpoint-title">POST /v1/auth/privileged-recovery/complete-with-approval</h3>
+<p>Complete the recovery with Email Token plus the operator's approved status.</p>
+<p><strong>Headers:</strong> <code translate="no">X-Session-Platform-Code</code>, <code translate="no">Content-Type: application/json</code></p>
+<p><strong>Payload:</strong> <code translate="no">{"token":"pvr_opaque_value"}</code>.</p>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"data":{}}</code>.</p>
+<p><strong>Errors:</strong> <code translate="no">AUTH_PRIVILEGED_RECOVERY_INVALID</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> Unapproved, expired, used, or incorrect tokens return the same error.</p>
+<h2 id="9-s2s-account-provisioning">9. S2S Account Provisioning</h2>
+<p>The S2S endpoint can only be called from the platform backend. Each request must include the platform code and the API Key for that Realm.</p>
+<h3 id="post-v1-internal-accounts" class="endpoint-title">POST /v1/internal/accounts</h3>
+<p><strong>Headers</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Name</th><th>Required</th><th>Value</th></tr></thead><tbody><tr><td><code translate="no">X-Session-Platform-Code</code></td><td>YES</td><td><code translate="no">&lt;platform_code&gt;</code></td></tr><tr><td><code translate="no">Authorization</code></td><td>YES</td><td><code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">Content-Type</code></td><td>YES</td><td><code translate="no">application/json</code></td></tr></tbody></table></div>
+<p><strong>Path/Query Parameters:</strong> None.</p>
+<p><strong>Payload</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Fields</th><th>Type</th><th>Required</th><th>Help</th></tr></thead><tbody><tr><td><code translate="no">tenant</code></td><td>string</td><td>Yes</td><td>Tenantless Timeline <code translate="no">""</code></td></tr><tr><td><code translate="no">type</code></td><td>string</td><td>Yes</td><td><code translate="no">member</code> or <code translate="no">staff</code></td></tr><tr><td><code translate="no">username</code></td><td>string</td><td>Yes</td><td>In-Platform Account Name</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>Yes</td><td>Initial password, up to 1024 characters</td></tr></tbody></table></div>
+<pre><code class="language-json">{&quot;tenant&quot;:&quot;&quot;,&quot;type&quot;:&quot;member&quot;,&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;S3cure-Pass!&quot;}</code></pre>
+<p><strong>Success:<code translate="no">201 Created</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;sub&quot;:&quot;acc_01...&quot;}}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">AUTH_TOKEN_INVALID</code>, <code translate="no">AUTH_PLATFORM_UNKNOWN</code>, <code translate="no">COMMON_IDEMPOTENCY_CONFLICT</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>.</p>
+<p><strong>Security:</strong> <code translate="no">sub</code> is a stable identifier for access-linked business data; plaintext passwords must not be stored. Cross-Realm API Key use is always rejected.</p>
+<h3 id="patch-v1-internal-accounts-sub" class="endpoint-title">PATCH /v1/internal/accounts/{sub}</h3>
+<p>Perform deactivation/activation, password reset, or emergency revocation for your account, with only one option available.</p>
+<p><strong>Headers:</strong> Provide endpoints with the same account.</p>
+<p><strong>Path Parameters:</strong> Identification of accounts starting with <code translate="no">sub</code>, <code translate="no">acc_</code>.</p>
+<p><strong>Query Parameters:</strong> None.</p>
+<p><strong>Payload, Three Choices and One</strong></p>
+<pre><code class="language-json">{&quot;status&quot;:&quot;disabled&quot;}</code></pre>
+<pre><code class="language-json">{&quot;reset_password&quot;:&quot;new-secure-password&quot;}</code></pre>
+<pre><code class="language-json">{&quot;revoke_all&quot;:true}</code></pre>
+<p><code translate="no">status</code> ONLY ACCEPTS <code translate="no">active</code> OR <code translate="no">disabled</code>.</p>
+<p><strong>Success:<code translate="no">200 OK</code></strong></p>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;sub&quot;:&quot;acc_01...&quot;,&quot;applied&quot;:true}}</code></pre>
+<p><strong>Errors:</strong> <code translate="no">COMMON_NOT_FOUND</code>, <code translate="no">COMMON_VALIDATION_FAILED</code>, <code translate="no">AUTH_TOKEN_INVALID</code>.</p>
+<p><strong>Security:</strong> Disabling the account revokes the Refresh Token; <code translate="no">revoke_all</code> is used for emergency response to suspicious account theft.</p>
+<h2 id="10-health-check">10. Health Check</h2>
+<h3 id="get-livez" class="endpoint-title">GET /livez</h3>
+<p><strong>Headers‧ Path‧ Query‧ Payload:</strong> None.</p>
+<p><strong>Authentication:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"status":"live"}</code>.</p>
+<p><strong>Purpose:</strong> Process survival check, does not mean the database is ready.</p>
+<h3 id="get-readyz" class="endpoint-title">GET /readyz</h3>
+<p><strong>Headers‧ Path‧ Query‧ Payload:</strong> None.</p>
+<p><strong>Authentication:</strong> None.</p>
+<p><strong>Success:</strong> <code translate="no">200 OK</code>,<code translate="no">{"status":"ready"}</code>.</p>
+<p><strong>Not Ready:</strong> <code translate="no">503 Service Unavailable</code>,<code translate="no">{"status":"not_ready"}</code>.</p>
+<p><strong>Purpose:</strong> Verify that service dependencies are available.</p>
+<h2 id="11-token-and-security-requirements">11. Token and Security Requirements</h2>
+<div class="table-wrap"><table><thead><tr><th>Certificates</th><th>Forms</th><th>Core Specifications</th></tr></thead><tbody><tr><td><code translate="no">/v1</code> Access Token</td><td>RS256 JWT</td><td>Local JWKS Validation; <code translate="no">iss</code>, <code translate="no">aud</code>, <code translate="no">exp</code>, <code translate="no">typ</code></td></tr><tr><td><code translate="no">/v1</code> Refresh Token</td><td><code translate="no">rt_...</code> Opaque Value</td><td>Alternate; Reuse Triggers Full Account Revocation</td></tr><tr><td>OAuth Access Token</td><td><code translate="no">typ=at+jwt</code> RS256 JWT</td><td>Realm issuer; Default Short-Term</td></tr><tr><td>OAuth ID Token</td><td>RS256 JWT</td><td>Validate <code translate="no">aud == client_id</code>, <code translate="no">nonce</code>, <code translate="no">iss</code>, <code translate="no">exp</code></td></tr><tr><td>OAuth Refresh Token</td><td>Selector + Secret Opaque Value</td><td>Bind client and session, alternating each time use</td></tr><tr><td>Authorization Code</td><td>Opaque value</td><td>Short-term, one-time, binding redirect URI to PKCE</td></tr><tr><td><code translate="no">mfa_token</code></td><td><code translate="no">mfa_...</code></td><td>5 MINUTES, ONE-TIME</td></tr><tr><td>Recovery Code</td><td><code translate="no">XXXXX-XXXXX</code></td><td>Disposable, only displayed when generated</td></tr><tr><td>S2S API Key</td><td><code translate="no">sk_...</code></td><td>Backend save only, Realm-scoped</td></tr></tbody></table></div>
+<p>Clients must:</p>
+<ol>
+<li>ACCEPT ONLY <code translate="no">RS256</code>, REJECTING <code translate="no">alg=none</code>, HMAC CONFUSION AND UNKNOWN ALGORITHMS.</li>
+<li>Verify token issuer, audience, expiry, type, and required nonce.</li>
+<li>Do not write Password, Token, API Key, MFA Secret, Recovery Code to Log.</li>
+<p>4th. AVOID <code translate="no">429</code> BY <code translate="no">Retry-After</code>; DO NOT AUTOMATICALLY RETRY FOR NORMAL <code translate="no">4xx</code>.</p>
+<li>The OAuth Redirect URI takes Exact Match and does not self-regularize trailing slashes.</li>
+<p>6th. Access Token prioritizes memory; if cookies are used, <code translate="no">HttpOnly</code>, <code translate="no">Secure</code> and the appropriate <code translate="no">SameSite</code> must be used.</p>
+</ol>
+<h2 id="12-error-code">12. Error code</h2>
+<div class="table-wrap"><table><thead><tr><th>id</th><th>code</th><th>HTTP</th><th>Help</th></tr></thead><tbody><tr><td>1000</td><td><code translate="no">COMMON_INTERNAL_ERROR</code></td><td>500</td><td>INTERNAL ERROR REPORTED WITH <code translate="no">trace_id</code></td></tr><tr><td>1001</td><td><code translate="no">COMMON_VALIDATION_FAILED</code></td><td>422</td><td>JSON, FIELD, TYPE, OR CONSTRAINT MISMATCH</td></tr><tr><td>1002</td><td><code translate="no">COMMON_NOT_FOUND</code></td><td>404</td><td>RESOURCE OR PATH DOES NOT EXIST</td></tr><tr><td>1003</td><td><code translate="no">COMMON_RATE_LIMITED</code></td><td>429</td><td>Retry after the number of seconds specified by <code translate="no">Retry-After</code></td></tr><tr><td>1004</td><td><code translate="no">COMMON_IDEMPOTENCY_CONFLICT</code></td><td>409</td><td>UNIQUE RESOURCE EXISTS</td></tr><tr><td>1005</td><td><code translate="no">COMMON_FORBIDDEN</code></td><td>403</td><td>VERIFIED BUT NOT PRIVILEGED</td></tr><tr><td>2001</td><td><code translate="no">AUTH_INVALID_CREDENTIALS</code></td><td>401</td><td>ACCOUNT OR PASSWORD ERROR</td></tr><tr><td>2002</td><td><code translate="no">AUTH_ACCOUNT_DISABLED</code></td><td>403</td><td>ACCOUNT DEACTIVATED</td></tr><tr><td>2003</td><td><code translate="no">AUTH_ACCOUNT_LOCKED</code></td><td>423</td><td>TEMPORARILY LOCKED AFTER MULTIPLE LOGIN FAILURES</td></tr><tr><td>2004</td><td><code translate="no">AUTH_MFA_REQUIRED</code></td><td>401</td><td>PROCESS REQUIRES MFA</td></tr><tr><td>2005</td><td><code translate="no">AUTH_MFA_INVALID_CODE</code></td><td>401</td><td>INVALID TOTP or challenge</td></tr><tr><td>2006</td><td><code translate="no">AUTH_MFA_ALREADY_ENABLED</code></td><td>409</td><td>MFA ENABLED</td></tr><tr><td>2007</td><td><code translate="no">AUTH_RECOVERY_CODE_INVALID</code></td><td>401</td><td>Recovery Code invalid or used</td></tr><tr><td>2008</td><td><code translate="no">AUTH_REFRESH_INVALID</code></td><td>401</td><td>Refresh Token Invalid or Expired</td></tr><tr><td>2009</td><td><code translate="no">AUTH_REFRESH_REUSED</code></td><td>401</td><td>Refresh Token Reuse Detected</td></tr><tr><td>2010</td><td><code translate="no">AUTH_TOKEN_EXPIRED</code></td><td>401</td><td>Access Token Expired</td></tr><tr><td>2011</td><td><code translate="no">AUTH_TOKEN_INVALID</code></td><td>401</td><td>Invalid JWT, API Key or Bearer format</td></tr><tr><td>2012</td><td><code translate="no">AUTH_TOKEN_REVOKED</code></td><td>401</td><td>Token Urgent Withdrawal</td></tr><tr><td>2013</td><td><code translate="no">AUTH_PLATFORM_UNKNOWN</code></td><td>400</td><td>Platform code unresolvable, unknown or disabled</td></tr><tr><td>2014</td><td><code translate="no">AUTH_RECOVERY_TOKEN_INVALID</code></td><td>401</td><td>Email/Password Recovery Token Invalid, Expired or Used</td></tr><tr><td>2015</td><td><code translate="no">AUTH_PASSWORD_COMPROMISED</code></td><td>422</td><td>PASSWORD EXISTS IN KNOWN LEAK LIST</td></tr><tr><td>2016</td><td><code translate="no">AUTH_MFA_SETUP_REQUIRED</code></td><td>403</td><td>PRIVILEGE PROCESS HAS NOT COMPLETED MFA SETUP</td></tr><tr><td>2017</td><td><code translate="no">AUTH_PRIVILEGED_RECOVERY_INVALID</code></td><td>401</td><td>PRIVILEGE MFA RECOVERY REQUEST INVALID</td></tr></tbody></table></div>
+<h2 id="13-minimum-integration-checklist">13. Minimum Integration Checklist</h2>
+<pre><code class="language-bash"># Liveness
+curl https://identity.lifeintent.app/livez
+
+# Realm Discovery
+curl https://identity.lifeintent.app/realms/&lt;slug&gt;/.well-known/openid-configuration
+
+# /v1 JWKS
+curl https://identity.lifeintent.app/v1/.well-known/jwks.json \
+  -H &quot;X-Session-Platform-Code: &lt;platform_code&gt;&quot;</code></pre>
+<p>If the above request is successful, then choose according to the use case:</p>
+<ul>
+<li>Standard third party login: OAuth Authorization Code+PKCE.</li>
+<li>CONFIDENTIAL LOGIN FROM YOUR PLATFORM: <code translate="no">POST /v1/auth/login</code>.</li>
+<li>BACKEND ACCOUNT AVAILABLE: <code translate="no">POST /v1/internal/accounts</code>.</li>
+</ul>
+<p>See also <code translate="no">INTEGRATION.md</code> for the complete end-to-end process.</p><footer>Identity Service public API documentation · Updated: 2026-07-20 (Asia/Taipei)</footer></main>
+</div>
+<script>
+document.querySelectorAll("[data-locale]").forEach(function (link) {
+  link.addEventListener("click", function () {
+    try { localStorage.setItem("identityservice-docs-language", link.getAttribute("data-locale")); } catch (_) {}
+  });
+});
+</script>
+</body>
+</html>

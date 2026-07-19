@@ -3,7 +3,10 @@ set -eu
 
 cd "$(dirname "$0")/.."
 
-for file in index.html INTEGRATION.md API.md api.html; do
+for file in \
+  index.html INTEGRATION.md \
+  API.md API.zh-Hans.md API.en.md \
+  api.html api.zh-Hans.html api.en.html; do
   test -f "$file" || {
     echo "缺少必要文件：$file" >&2
     exit 1
@@ -43,7 +46,7 @@ POST /v1/internal/accounts
 PATCH /v1/internal/accounts/{sub}
 '
 
-for spec in API.md api.html; do
+for spec in API.md API.zh-Hans.md API.en.md api.html api.zh-Hans.html api.en.html; do
   printf '%s\n' "$required_paths" | while IFS= read -r endpoint; do
     [ -z "$endpoint" ] && continue
     grep -Fq "$endpoint" "$spec" || {
@@ -83,3 +86,25 @@ grep -Fq 'href="api.html"' index.html
 grep -Fq 'href="API.md"' index.html
 grep -Fq '2026-07-16' index.html
 grep -Fq 'download' index.html
+
+grep -Fq '<html lang="zh-Hant">' api.html
+grep -Fq '<html lang="zh-Hans">' api.zh-Hans.html
+grep -Fq '<html lang="en">' api.en.html
+grep -Fq 'navigator.languages' api.html
+grep -Fq 'identityservice-docs-language' api.html
+
+for spec in api.html api.zh-Hans.html api.en.html; do
+  grep -Fq 'hreflang="zh-Hant"' "$spec"
+  grep -Fq 'hreflang="zh-Hans"' "$spec"
+  grep -Fq 'hreflang="en"' "$spec"
+  grep -Fq 'data-locale="zh-Hant"' "$spec"
+  grep -Fq 'data-locale="zh-Hans"' "$spec"
+  grep -Fq 'data-locale="en"' "$spec"
+done
+
+if grep -Eq '[一-龥]' API.en.md; then
+  echo 'API.en.md 仍含未翻譯的中文字元' >&2
+  exit 1
+fi
+
+node scripts/test-language-routing.mjs

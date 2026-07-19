@@ -1,31 +1,15 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hans">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Identity Service 公開 API 文件：Headers、Payload、Response、錯誤碼與安全規範">
+<meta name="description" content="Identity Service 公开 API 文档：Headers、Payload、Response、错误码与安全规范">
 <link rel="alternate" hreflang="zh-Hant" href="api.html">
 <link rel="alternate" hreflang="zh-Hans" href="api.zh-Hans.html">
 <link rel="alternate" hreflang="en" href="api.en.html">
 <link rel="alternate" hreflang="x-default" href="api.html">
-<title>Identity Service API 文件</title>
-<script>
-(function () {
-  var key = "identityservice-docs-language";
-  var saved = null;
-  try { saved = localStorage.getItem(key); } catch (_) {}
-  var languages = saved ? [saved] : (navigator.languages || [navigator.language || ""]);
-  var selected = "en";
-  for (var i = 0; i < languages.length; i += 1) {
-    var language = String(languages[i] || "").toLowerCase();
-    if (/^zh-(hans|cn|sg|my)/.test(language)) { selected = "zh-Hans"; break; }
-    if (/^zh-(hant|tw|hk|mo)/.test(language) || language === "zh") { selected = "zh-Hant"; break; }
-    if (/^en(?:-|$)/.test(language)) { selected = "en"; break; }
-  }
-  var target = selected === "zh-Hans" ? "api.zh-Hans.html" : selected === "en" ? "api.en.html" : "";
-  if (target) location.replace(target + location.search + location.hash);
-})();
-</script>
+<title>Identity Service API 文档</title>
+
 <style>
 :root{--bg:#07101f;--panel:#0d192d;--panel2:#111f36;--ink:#edf4ff;--muted:#9db0ca;--brand:#62d4ff;--accent:#8c7bff;--line:#263a57;--ok:#3ddc97;--post:#b79aff;--get:#62d4ff;--patch:#ffbf69}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#07101f,#0a1325 60%,#10162b);color:var(--ink);font:15px/1.72 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -42,16 +26,16 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <body>
 <header class="top">
   <a class="brand" href="index.html">Identity<span>Service</span></a>
-  <nav><a href="index.html">首頁</a><a href="api.html#13-最小串接檢查">快速上手</a><span class="language" aria-label="Language"><a href="api.html" hreflang="zh-Hant" data-locale="zh-Hant" aria-current="page">繁體中文</a><a href="api.zh-Hans.html" hreflang="zh-Hans" data-locale="zh-Hans">简体中文</a><a href="api.en.html" hreflang="en" data-locale="en">English</a></span><a class="download" href="API.md" download>下載 API.md</a></nav>
+  <nav><a href="index.html">首页</a><a href="api.zh-Hans.html#13-最小串接检查">快速入门</a><span class="language" aria-label="Language"><a href="api.html" hreflang="zh-Hant" data-locale="zh-Hant">繁體中文</a><a href="api.zh-Hans.html" hreflang="zh-Hans" data-locale="zh-Hans" aria-current="page">简体中文</a><a href="api.en.html" hreflang="en" data-locale="en">English</a></span><a class="download" href="API.zh-Hans.md" download>下载 API.zh-Hans.md</a></nav>
 </header>
 <div class="layout">
-  <aside class="toc" aria-label="API"><h2>文件目錄</h2><a class="toc-l2" href="#1-共通規範">1. 共通規範</a>
+  <aside class="toc" aria-label="API"><h2>文档目录</h2><a class="toc-l2" href="#1-共通规范">1. 共通规范</a>
 <a class="toc-l2" href="#2-headers">2. Headers</a>
-<a class="toc-l2" href="#3-response-與錯誤格式">3. Response 與錯誤格式</a>
+<a class="toc-l2" href="#3-response-与错误格式">3. Response 与错误格式</a>
 <a class="toc-l3" href="#3-1-v1-成功格式">3.1 <code translate="no">/v1</code> 成功格式</a>
-<a class="toc-l3" href="#3-2-v1-錯誤格式">3.2 <code translate="no">/v1</code> 錯誤格式</a>
-<a class="toc-l3" href="#3-3-oauth-錯誤格式">3.3 OAuth 錯誤格式</a>
-<a class="toc-l2" href="#4-oidc-discovery-與-jwks">4. OIDC Discovery 與 JWKS</a>
+<a class="toc-l3" href="#3-2-v1-错误格式">3.2 <code translate="no">/v1</code> 错误格式</a>
+<a class="toc-l3" href="#3-3-oauth-错误格式">3.3 OAuth 错误格式</a>
+<a class="toc-l2" href="#4-oidc-discovery-与-jwks">4. OIDC Discovery 与 JWKS</a>
 <a class="toc-l3" href="#get-realms-slug-well-known-openid-configuration">GET /realms/{slug}/.well-known/openid-configuration</a>
 <a class="toc-l3" href="#get-realms-slug-well-known-jwks-json">GET /realms/{slug}/.well-known/jwks.json</a>
 <a class="toc-l2" href="#5-oauth-2-0-authorization-code-pkce">5. OAuth 2.0 Authorization Code + PKCE</a>
@@ -61,7 +45,7 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <a class="toc-l3" href="#post-realms-slug-oauth-token">POST /realms/{slug}/oauth/token</a>
 <a class="toc-l3" href="#post-realms-slug-oauth-revoke">POST /realms/{slug}/oauth/revoke</a>
 <a class="toc-l3" href="#post-realms-slug-oauth-introspect">POST /realms/{slug}/oauth/introspect</a>
-<a class="toc-l2" href="#6-登入與-session">6. 登入與 Session</a>
+<a class="toc-l2" href="#6-登入与-session">6. 登入与 Session</a>
 <a class="toc-l3" href="#post-v1-auth-login">POST /v1/auth/login</a>
 <a class="toc-l3" href="#post-v1-auth-refresh">POST /v1/auth/refresh</a>
 <a class="toc-l3" href="#post-v1-auth-logout">POST /v1/auth/logout</a>
@@ -73,7 +57,7 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <a class="toc-l3" href="#post-v1-auth-mfa-activate">POST /v1/auth/mfa/activate</a>
 <a class="toc-l3" href="#post-v1-auth-mfa-disable">POST /v1/auth/mfa/disable</a>
 <a class="toc-l3" href="#post-v1-auth-mfa-recovery-codes-regenerate">POST /v1/auth/mfa/recovery-codes/regenerate</a>
-<a class="toc-l2" href="#8-註冊-email-密碼與高權限帳號復原">8. 註冊、Email、密碼與高權限帳號復原</a>
+<a class="toc-l2" href="#8-注册-email-密码与高权限帐号复原">8. 注册、Email、密码与高权限帐号复原</a>
 <a class="toc-l3" href="#post-v1-auth-register">POST /v1/auth/register</a>
 <a class="toc-l3" href="#post-v1-auth-email-verify-request">POST /v1/auth/email/verify/request</a>
 <a class="toc-l3" href="#post-v1-auth-email-verify-confirm">POST /v1/auth/email/verify/confirm</a>
@@ -82,66 +66,66 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <a class="toc-l3" href="#post-v1-auth-privileged-recovery-request">POST /v1/auth/privileged-recovery/request</a>
 <a class="toc-l3" href="#post-v1-auth-privileged-recovery-complete">POST /v1/auth/privileged-recovery/complete</a>
 <a class="toc-l3" href="#post-v1-auth-privileged-recovery-complete-with-approval">POST /v1/auth/privileged-recovery/complete-with-approval</a>
-<a class="toc-l2" href="#9-s2s-帳號供應">9. S2S 帳號供應</a>
+<a class="toc-l2" href="#9-s2s-帐号供应">9. S2S 帐号供应</a>
 <a class="toc-l3" href="#post-v1-internal-accounts">POST /v1/internal/accounts</a>
 <a class="toc-l3" href="#patch-v1-internal-accounts-sub">PATCH /v1/internal/accounts/{sub}</a>
-<a class="toc-l2" href="#10-健康檢查">10. 健康檢查</a>
+<a class="toc-l2" href="#10-健康检查">10. 健康检查</a>
 <a class="toc-l3" href="#get-livez">GET /livez</a>
 <a class="toc-l3" href="#get-readyz">GET /readyz</a>
-<a class="toc-l2" href="#11-token-與安全規範">11. Token 與安全規範</a>
-<a class="toc-l2" href="#12-錯誤碼">12. 錯誤碼</a>
-<a class="toc-l2" href="#13-最小串接檢查">13. 最小串接檢查</a></aside>
-  <main><h1 id="identity-service-公開-api-文件">Identity Service 公開 API 文件</h1>
-<blockquote>Base URL：<code translate="no">https://identity.lifeintent.app</code><br>文件更新：2026-07-20（Asia/Taipei）<br>適用對象：接入平台的前端、後端、Resource Server 與 AI 開發代理人。<br>公開範圍不包含營運者專用 <code translate="no">/v1/admin/*</code> 與系統 Webhook <code translate="no">/webhooks/*</code>。</blockquote>
-<h2 id="1-共通規範">1. 共通規範</h2>
-<p>Identity Service 提供兩組 API：</p>
+<a class="toc-l2" href="#11-token-与安全规范">11. Token 与安全规范</a>
+<a class="toc-l2" href="#12-错误码">12. 错误码</a>
+<a class="toc-l2" href="#13-最小串接检查">13. 最小串接检查</a></aside>
+  <main><h1 id="identity-service-公开-api-文件">Identity Service 公开 API 文件</h1>
+<blockquote>Base URL：<code translate="no">https://identity.lifeintent.app</code><br>文件更新：2026-07-20（Asia/Taipei）<br>适用对象：接入平台的前端、后端、Resource Server 与 AI 开发代理人。<br>公开范围不包含营运者专用 <code translate="no">/v1/admin/*</code> 与系统 Webhook <code translate="no">/webhooks/*</code>。</blockquote>
+<h2 id="1-共通规范">1. 共通规范</h2>
+<p>Identity Service 提供两组 API：</p>
 <ul>
-<li><code translate="no">/realms/{slug}/*</code>：標準 OIDC/OAuth 2.0，Realm 已包含在 URL，不使用 <code translate="no">X-Session-Platform-Code</code>。</li>
-<li><code translate="no">/v1/*</code>：平台登入、帳號自助、MFA 與 S2S 帳號供應，每次請求必須帶 <code translate="no">X-Session-Platform-Code</code>。</li>
+<li><code translate="no">/realms/{slug}/*</code>：标准 OIDC/OAuth 2.0，Realm 已包含在 URL，不使用 <code translate="no">X-Session-Platform-Code</code>。</li>
+<li><code translate="no">/v1/*</code>：平台登入、帐号自助、MFA 与 S2S 帐号供应，每次请求必须带 <code translate="no">X-Session-Platform-Code</code>。</li>
 </ul>
-<div class="table-wrap"><table><thead><tr><th>項目</th><th>規範</th></tr></thead><tbody><tr><td>TLS</td><td>全部端點只使用 HTTPS</td></tr><tr><td>JSON</td><td>UTF-8；一般有 Payload 的端點使用 <code translate="no">application/json</code></td></tr><tr><td>OAuth Form</td><td><code translate="no">/oauth/token</code>、<code translate="no">/oauth/revoke</code>、<code translate="no">/oauth/introspect</code> 使用 <code translate="no">application/x-www-form-urlencoded</code></td></tr><tr><td>未知 JSON 欄位</td><td>拒絕並回驗證錯誤</td></tr><tr><td>Request Body 上限</td><td>64 KiB</td></tr><tr><td>時間</td><td>JWT 時間欄位使用 Unix timestamp（秒）</td></tr><tr><td>管理 API</td><td><code translate="no">/v1/admin/*</code> 不屬於公開串接範圍</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>项目</th><th>规范</th></tr></thead><tbody><tr><td>TLS</td><td>全部端点只使用 HTTPS</td></tr><tr><td>JSON</td><td>UTF-8；一般有 Payload 的端点使用 <code translate="no">application/json</code></td></tr><tr><td>OAuth Form</td><td><code translate="no">/oauth/token</code>、<code translate="no">/oauth/revoke</code>、<code translate="no">/oauth/introspect</code> 使用 <code translate="no">application/x-www-form-urlencoded</code></td></tr><tr><td>未知 JSON 栏位</td><td>拒绝并回验证错误</td></tr><tr><td>Request Body 上限</td><td>64 KiB</td></tr><tr><td>时间</td><td>JWT 时间栏位使用 Unix timestamp（秒）</td></tr><tr><td>管理 API</td><td><code translate="no">/v1/admin/*</code> 不属于公开串接范围</td></tr></tbody></table></div>
 <h2 id="2-headers">2. Headers</h2>
-<div class="table-wrap"><table><thead><tr><th>Header</th><th>適用範圍</th><th>必要性</th><th>格式與限制</th></tr></thead><tbody><tr><td><code translate="no">Content-Type</code></td><td>有 Payload 的請求</td><td>必要</td><td>一般 API：<code translate="no">application/json</code>；OAuth form 端點：<code translate="no">application/x-www-form-urlencoded</code></td></tr><tr><td><code translate="no">Accept</code></td><td>全部</td><td>選用</td><td>建議 <code translate="no">application/json</code></td></tr><tr><td><code translate="no">Accept-Language</code></td><td><code translate="no">/v1/*</code></td><td>選用</td><td><code translate="no">zh-TW</code> 或 <code translate="no">en</code>；其他值以英文回退</td></tr><tr><td><code translate="no">X-Session-Platform-Code</code></td><td><code translate="no">/v1/*</code></td><td>必要</td><td>營運方核發的 platform code／realm slug，例如 <code translate="no">topinkiwi</code></td></tr><tr><td><code translate="no">Authorization</code></td><td>Bearer JWT、S2S API Key</td><td>依端點</td><td><code translate="no">Bearer &lt;access_token&gt;</code> 或 <code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">X-Request-Id</code></td><td>全部</td><td>選用</td><td>1–128 字元，只接受英數字、<code translate="no">.</code>、<code translate="no">_</code>、<code translate="no">-</code>；合法值會在 Response Header 回傳</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Header</th><th>适用范围</th><th>必要性</th><th>格式与限制</th></tr></thead><tbody><tr><td><code translate="no">Content-Type</code></td><td>有 Payload 的请求</td><td>必要</td><td>一般 API：<code translate="no">application/json</code>；OAuth form 端点：<code translate="no">application/x-www-form-urlencoded</code></td></tr><tr><td><code translate="no">Accept</code></td><td>全部</td><td>选用</td><td>建议 <code translate="no">application/json</code></td></tr><tr><td><code translate="no">Accept-Language</code></td><td><code translate="no">/v1/*</code></td><td>选用</td><td><code translate="no">zh-TW</code> 或 <code translate="no">en</code>；其他值以英文回退</td></tr><tr><td><code translate="no">X-Session-Platform-Code</code></td><td><code translate="no">/v1/*</code></td><td>必要</td><td>营运方核发的 platform code／realm slug，例如 <code translate="no">topinkiwi</code></td></tr><tr><td><code translate="no">Authorization</code></td><td>Bearer JWT、S2S API Key</td><td>依端点</td><td><code translate="no">Bearer &lt;access_token&gt;</code> 或 <code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">X-Request-Id</code></td><td>全部</td><td>选用</td><td>1–128 字元，只接受英数字、<code translate="no">.</code>、<code translate="no">_</code>、<code translate="no">-</code>；合法值会在 Response Header 回传</td></tr></tbody></table></div>
 <p>注意：</p>
 <ul>
 <li><code translate="no">/realms/{slug}/*</code> 不需要 <code translate="no">X-Session-Platform-Code</code>。</li>
-<li><code translate="no">/v1/*</code> 即使沒有認證，也必須帶 <code translate="no">X-Session-Platform-Code</code>。</li>
-<li>S2S API Key 只能放在後端 Secret 管理系統，不得放入瀏覽器、Mobile App、原始碼或 Log。</li>
-<li>錯誤 Response 的 <code translate="no">trace_id</code> 對應 <code translate="no">X-Request-Id</code>，回報問題時請一併提供。</li>
+<li><code translate="no">/v1/*</code> 即使没有认证，也必须带 <code translate="no">X-Session-Platform-Code</code>。</li>
+<li>S2S API Key 只能放在后端 Secret 管理系统，不得放入浏览器、Mobile App、原始码或 Log。</li>
+<li>错误 Response 的 <code translate="no">trace_id</code> 对应 <code translate="no">X-Request-Id</code>，回报问题时请一并提供。</li>
 </ul>
-<h2 id="3-response-與錯誤格式">3. Response 與錯誤格式</h2>
+<h2 id="3-response-与错误格式">3. Response 与错误格式</h2>
 <h3 id="3-1-v1-成功格式">3.1 <code translate="no">/v1</code> 成功格式</h3>
-<p>除 <code translate="no">204 No Content</code> 外，成功資料包在 <code translate="no">data</code>：</p>
+<p>除 <code translate="no">204 No Content</code> 外，成功资料包在 <code translate="no">data</code>：</p>
 <pre><code class="language-json">{
   &quot;data&quot;: {
     &quot;example&quot;: true
   }
 }</code></pre>
-<h3 id="3-2-v1-錯誤格式">3.2 <code translate="no">/v1</code> 錯誤格式</h3>
+<h3 id="3-2-v1-错误格式">3.2 <code translate="no">/v1</code> 错误格式</h3>
 <pre><code class="language-json">{
   &quot;error&quot;: {
     &quot;code&quot;: &quot;COMMON_VALIDATION_FAILED&quot;,
     &quot;id&quot;: 1001,
-    &quot;message&quot;: &quot;請求格式或欄位無效&quot;,
+    &quot;message&quot;: &quot;请求格式或栏位无效&quot;,
     &quot;trace_id&quot;: &quot;5b5aa30b-00fd-46ab-a836-322c779ff2c8&quot;
   }
 }</code></pre>
-<p>程式判斷使用穩定字串 <code translate="no">code</code>；<code translate="no">message</code> 只供顯示。<code translate="no">429 COMMON_RATE_LIMITED</code> 會附 <code translate="no">Retry-After</code> Response Header，客戶端應依秒數等待並採指數退避。</p>
-<h3 id="3-3-oauth-錯誤格式">3.3 OAuth 錯誤格式</h3>
-<p><code translate="no">/realms/{slug}/oauth/*</code> 遵循 OAuth JSON 錯誤，不使用 <code translate="no">/v1</code> envelope：</p>
+<p>程式判断使用稳定字串 <code translate="no">code</code>；<code translate="no">message</code> 只供显示。<code translate="no">429 COMMON_RATE_LIMITED</code> 会附 <code translate="no">Retry-After</code> Response Header，客户端应依秒数等待并采指数退避。</p>
+<h3 id="3-3-oauth-错误格式">3.3 OAuth 错误格式</h3>
+<p><code translate="no">/realms/{slug}/oauth/*</code> 遵循 OAuth JSON 错误，不使用 <code translate="no">/v1</code> envelope：</p>
 <pre><code class="language-json">{
   &quot;error&quot;: &quot;invalid_grant&quot;,
   &quot;error_description&quot;: &quot;the authorization grant is invalid&quot;
 }</code></pre>
-<p>OAuth Token 與敏感資料回應帶 <code translate="no">Cache-Control: no-store</code>、<code translate="no">Pragma: no-cache</code>。</p>
-<h2 id="4-oidc-discovery-與-jwks">4. OIDC Discovery 與 JWKS</h2>
+<p>OAuth Token 与敏感资料回应带 <code translate="no">Cache-Control: no-store</code>、<code translate="no">Pragma: no-cache</code>。</p>
+<h2 id="4-oidc-discovery-与-jwks">4. OIDC Discovery 与 JWKS</h2>
 <h3 id="get-realms-slug-well-known-openid-configuration" class="endpoint-title">GET /realms/{slug}/.well-known/openid-configuration</h3>
 <p>取得 Realm 的 OIDC metadata。</p>
-<p><strong>Headers：</strong> <code translate="no">Accept: application/json</code>（選用）</p>
-<p><strong>Path Parameters：</strong> <code translate="no">slug</code>，營運方核發的 Realm slug。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
-<p><strong>Payload：</strong> 無。</p>
-<p><strong>認證：</strong> 無。</p>
+<p><strong>Headers：</strong> <code translate="no">Accept: application/json</code>（选用）</p>
+<p><strong>Path Parameters：</strong> <code translate="no">slug</code>，营运方核发的 Realm slug。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
+<p><strong>Payload：</strong> 无。</p>
+<p><strong>认证：</strong> 无。</p>
 <pre><code class="language-bash">curl https://identity.lifeintent.app/realms/topinkiwi/.well-known/openid-configuration</code></pre>
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{
@@ -155,15 +139,15 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
   &quot;id_token_signing_alg_values_supported&quot;: [&quot;RS256&quot;],
   &quot;subject_types_supported&quot;: [&quot;public&quot;]
 }</code></pre>
-<p><strong>Errors：</strong> Realm 不存在、停權或 slug 格式非法均回相同 <code translate="no">404 COMMON_NOT_FOUND</code>，避免洩漏 Realm 狀態。</p>
-<p><strong>Security：</strong> 以回傳的 endpoint 為準，不要自行拼接或改成 <code translate="no">/v1/realms/*</code>。</p>
+<p><strong>Errors：</strong> Realm 不存在、停权或 slug 格式非法均回相同 <code translate="no">404 COMMON_NOT_FOUND</code>，避免泄漏 Realm 状态。</p>
+<p><strong>Security：</strong> 以回传的 endpoint 为准，不要自行拼接或改成 <code translate="no">/v1/realms/*</code>。</p>
 <h3 id="get-realms-slug-well-known-jwks-json" class="endpoint-title">GET /realms/{slug}/.well-known/jwks.json</h3>
-<p>取得該 Realm 的 RS256 公開驗章金鑰。</p>
-<p><strong>Headers：</strong> <code translate="no">Accept: application/json</code>（選用）</p>
+<p>取得该 Realm 的 RS256 公开验章金钥。</p>
+<p><strong>Headers：</strong> <code translate="no">Accept: application/json</code>（选用）</p>
 <p><strong>Path Parameters：</strong> <code translate="no">slug</code>。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
-<p><strong>Payload：</strong> 無。</p>
-<p><strong>認證：</strong> 無。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
+<p><strong>Payload：</strong> 无。</p>
+<p><strong>认证：</strong> 无。</p>
 <p><strong>Success：<code translate="no">200 OK</code>，<code translate="no">Cache-Control: public, max-age=300</code></strong></p>
 <pre><code class="language-json">{
   &quot;keys&quot;: [
@@ -177,18 +161,18 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
     }
   ]
 }</code></pre>
-<p><strong>Errors：</strong> 與 Discovery 相同。</p>
-<p><strong>Security：</strong> JWKS 只含公開材料；驗章時依 JWT header 的 <code translate="no">kid</code> 選鑰，且只接受 <code translate="no">RS256</code>。</p>
+<p><strong>Errors：</strong> 与 Discovery 相同。</p>
+<p><strong>Security：</strong> JWKS 只含公开材料；验章时依 JWT header 的 <code translate="no">kid</code> 选钥，且只接受 <code translate="no">RS256</code>。</p>
 <h2 id="5-oauth-2-0-authorization-code-pkce">5. OAuth 2.0 Authorization Code + PKCE</h2>
-<p>所有端點使用 <code translate="no">/realms/{slug}</code>，不帶 <code translate="no">X-Session-Platform-Code</code>。Public client 無 Client Secret，必須使用 PKCE <code translate="no">S256</code>。</p>
+<p>所有端点使用 <code translate="no">/realms/{slug}</code>，不带 <code translate="no">X-Session-Platform-Code</code>。Public client 无 Client Secret，必须使用 PKCE <code translate="no">S256</code>。</p>
 <h3 id="post-realms-slug-oauth-authorize" class="endpoint-title">POST /realms/{slug}/oauth/authorize</h3>
-<p>建立短效、一次性的授權交易。</p>
+<p>建立短效、一次性的授权交易。</p>
 <p><strong>Headers</strong></p>
-<div class="table-wrap"><table><thead><tr><th>名稱</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">Content-Type</code></td><td>是</td><td><code translate="no">application/json</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>名称</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">Content-Type</code></td><td>是</td><td><code translate="no">application/json</code></td></tr></tbody></table></div>
 <p><strong>Path Parameters：</strong> <code translate="no">slug</code>。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
 <p><strong>Payload</strong></p>
-<div class="table-wrap"><table><thead><tr><th>欄位</th><th>型別</th><th>必要</th><th>限制</th></tr></thead><tbody><tr><td><code translate="no">response_type</code></td><td>string</td><td>是</td><td>固定 <code translate="no">code</code></td></tr><tr><td><code translate="no">client_id</code></td><td>string</td><td>是</td><td>營運方登記的 client ID</td></tr><tr><td><code translate="no">redirect_uri</code></td><td>string</td><td>是</td><td>必須與登記值 Exact Match</td></tr><tr><td><code translate="no">scope</code></td><td>string</td><td>是</td><td>空白分隔；需包含允許的 scope</td></tr><tr><td><code translate="no">state</code></td><td>string</td><td>是</td><td>Client 產生的高熵隨機值</td></tr><tr><td><code translate="no">nonce</code></td><td>string</td><td>是</td><td>Client 產生，之後驗證 ID Token</td></tr><tr><td><code translate="no">code_challenge</code></td><td>string</td><td>是</td><td><code translate="no">BASE64URL(SHA256(code_verifier))</code></td></tr><tr><td><code translate="no">code_challenge_method</code></td><td>string</td><td>是</td><td>固定 <code translate="no">S256</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>栏位</th><th>型别</th><th>必要</th><th>限制</th></tr></thead><tbody><tr><td><code translate="no">response_type</code></td><td>string</td><td>是</td><td>固定 <code translate="no">code</code></td></tr><tr><td><code translate="no">client_id</code></td><td>string</td><td>是</td><td>营运方登记的 client ID</td></tr><tr><td><code translate="no">redirect_uri</code></td><td>string</td><td>是</td><td>必须与登记值 Exact Match</td></tr><tr><td><code translate="no">scope</code></td><td>string</td><td>是</td><td>空白分隔；需包含允许的 scope</td></tr><tr><td><code translate="no">state</code></td><td>string</td><td>是</td><td>Client 产生的高熵随机值</td></tr><tr><td><code translate="no">nonce</code></td><td>string</td><td>是</td><td>Client 产生，之后验证 ID Token</td></tr><tr><td><code translate="no">code_challenge</code></td><td>string</td><td>是</td><td><code translate="no">BASE64URL(SHA256(code_verifier))</code></td></tr><tr><td><code translate="no">code_challenge_method</code></td><td>string</td><td>是</td><td>固定 <code translate="no">S256</code></td></tr></tbody></table></div>
 <pre><code class="language-json">{
   &quot;response_type&quot;: &quot;code&quot;,
   &quot;client_id&quot;: &quot;topinkiwi-web&quot;,
@@ -204,22 +188,22 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
   &quot;transaction&quot;: &quot;txn_opaque_value&quot;,
   &quot;expires_in&quot;: 300
 }</code></pre>
-<p><strong>Errors：</strong> <code translate="no">invalid_request</code>、<code translate="no">unauthorized_client</code>、<code translate="no">invalid_scope</code>；Realm 不存在或停權為不可區分的 <code translate="no">404 invalid_request</code>。</p>
-<p><strong>Security：</strong> <code translate="no">state</code>、<code translate="no">nonce</code>、<code translate="no">code_verifier</code> 必須由 CSPRNG 產生；不得記錄密碼或交易 handle。</p>
+<p><strong>Errors：</strong> <code translate="no">invalid_request</code>、<code translate="no">unauthorized_client</code>、<code translate="no">invalid_scope</code>；Realm 不存在或停权为不可区分的 <code translate="no">404 invalid_request</code>。</p>
+<p><strong>Security：</strong> <code translate="no">state</code>、<code translate="no">nonce</code>、<code translate="no">code_verifier</code> 必须由 CSPRNG 产生；不得记录密码或交易 handle。</p>
 <h3 id="post-realms-slug-oauth-authorize-login" class="endpoint-title">POST /realms/{slug}/oauth/authorize/login</h3>
-<p>以帳密完成授權交易；若帳號已啟用 MFA，先回 MFA challenge。</p>
+<p>以帐密完成授权交易；若帐号已启用 MFA，先回 MFA challenge。</p>
 <p><strong>Headers：</strong> <code translate="no">Content-Type: application/json</code></p>
 <p><strong>Path Parameters：</strong> <code translate="no">slug</code>。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
 <p><strong>Payload</strong></p>
-<div class="table-wrap"><table><thead><tr><th>欄位</th><th>型別</th><th>必要</th><th>說明</th></tr></thead><tbody><tr><td><code translate="no">transaction</code></td><td>string</td><td>是</td><td>authorize 回傳的一次性交易 handle</td></tr><tr><td><code translate="no">tenant</code></td><td>string</td><td>是</td><td>無租戶時傳空字串</td></tr><tr><td><code translate="no">username</code></td><td>string</td><td>是</td><td>使用者帳號</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>是</td><td>使用者密碼</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>栏位</th><th>型别</th><th>必要</th><th>说明</th></tr></thead><tbody><tr><td><code translate="no">transaction</code></td><td>string</td><td>是</td><td>authorize 回传的一次性交易 handle</td></tr><tr><td><code translate="no">tenant</code></td><td>string</td><td>是</td><td>无租户时传空字串</td></tr><tr><td><code translate="no">username</code></td><td>string</td><td>是</td><td>使用者帐号</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>是</td><td>使用者密码</td></tr></tbody></table></div>
 <pre><code class="language-json">{
   &quot;transaction&quot;: &quot;txn_opaque_value&quot;,
   &quot;tenant&quot;: &quot;&quot;,
   &quot;username&quot;: &quot;alice&quot;,
   &quot;password&quot;: &quot;S3cure-Pass!&quot;
 }</code></pre>
-<p><strong>Success A：<code translate="no">200 OK</code>，無 MFA</strong></p>
+<p><strong>Success A：<code translate="no">200 OK</code>，无 MFA</strong></p>
 <pre><code class="language-json">{
   &quot;code&quot;: &quot;authorization-code&quot;,
   &quot;state&quot;: &quot;random-state&quot;,
@@ -231,19 +215,19 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
   &quot;mfa_token&quot;: &quot;mfa_opaque_value&quot;
 }</code></pre>
 <p><strong>Errors：</strong> <code translate="no">invalid_grant</code>、<code translate="no">access_denied</code>、<code translate="no">invalid_transaction</code>。</p>
-<p><strong>Security：</strong> Client 收到結果後必須比對 <code translate="no">state</code>，授權碼短效且一次性。</p>
+<p><strong>Security：</strong> Client 收到结果后必须比对 <code translate="no">state</code>，授权码短效且一次性。</p>
 <h3 id="post-realms-slug-oauth-authorize-mfa" class="endpoint-title">POST /realms/{slug}/oauth/authorize/mfa</h3>
-<p>以 MFA challenge 與 TOTP 完成授權交易。</p>
+<p>以 MFA challenge 与 TOTP 完成授权交易。</p>
 <p><strong>Headers：</strong> <code translate="no">Content-Type: application/json</code></p>
 <p><strong>Path Parameters：</strong> <code translate="no">slug</code>。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
 <p><strong>Payload</strong></p>
 <pre><code class="language-json">{
   &quot;transaction&quot;: &quot;txn_opaque_value&quot;,
   &quot;mfa_token&quot;: &quot;mfa_opaque_value&quot;,
   &quot;code&quot;: &quot;123456&quot;
 }</code></pre>
-<p>三個欄位皆為必要 string；<code translate="no">code</code> 為驗證器當下的 6 位數。</p>
+<p>三个栏位皆为必要 string；<code translate="no">code</code> 为验证器当下的 6 位数。</p>
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{
   &quot;code&quot;: &quot;authorization-code&quot;,
@@ -251,15 +235,15 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
   &quot;redirect_uri&quot;: &quot;https://app.example.com/callback&quot;
 }</code></pre>
 <p><strong>Errors：</strong> <code translate="no">invalid_grant</code>、<code translate="no">invalid_transaction</code>、<code translate="no">access_denied</code>。</p>
-<p><strong>Security：</strong> <code translate="no">transaction</code>、<code translate="no">mfa_token</code> 與 TOTP challenge 均短效且一次性。</p>
+<p><strong>Security：</strong> <code translate="no">transaction</code>、<code translate="no">mfa_token</code> 与 TOTP challenge 均短效且一次性。</p>
 <h3 id="post-realms-slug-oauth-token" class="endpoint-title">POST /realms/{slug}/oauth/token</h3>
 <p>以 Authorization Code + PKCE 或 Refresh Token 取得 Token。</p>
 <p><strong>Headers：</strong> <code translate="no">Content-Type: application/x-www-form-urlencoded</code></p>
 <p><strong>Path Parameters：</strong> <code translate="no">slug</code>。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
-<p><strong>認證：</strong> Public client 不使用 Client Secret。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
+<p><strong>认证：</strong> Public client 不使用 Client Secret。</p>
 <p><strong>Authorization Code Payload</strong></p>
-<div class="table-wrap"><table><thead><tr><th>欄位</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">grant_type</code></td><td>是</td><td><code translate="no">authorization_code</code></td></tr><tr><td><code translate="no">code</code></td><td>是</td><td>上一步取得的一次性授權碼</td></tr><tr><td><code translate="no">redirect_uri</code></td><td>是</td><td>必須與 authorize 時完全相同</td></tr><tr><td><code translate="no">client_id</code></td><td>是</td><td>登記的 client ID</td></tr><tr><td><code translate="no">code_verifier</code></td><td>是</td><td>對應原 <code translate="no">code_challenge</code> 的 PKCE verifier</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>栏位</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">grant_type</code></td><td>是</td><td><code translate="no">authorization_code</code></td></tr><tr><td><code translate="no">code</code></td><td>是</td><td>上一步取得的一次性授权码</td></tr><tr><td><code translate="no">redirect_uri</code></td><td>是</td><td>必须与 authorize 时完全相同</td></tr><tr><td><code translate="no">client_id</code></td><td>是</td><td>登记的 client ID</td></tr><tr><td><code translate="no">code_verifier</code></td><td>是</td><td>对应原 <code translate="no">code_challenge</code> 的 PKCE verifier</td></tr></tbody></table></div>
 <pre><code class="language-bash">curl -X POST https://identity.lifeintent.app/realms/topinkiwi/oauth/token \
   -H &quot;Content-Type: application/x-www-form-urlencoded&quot; \
   -d &quot;grant_type=authorization_code&quot; \
@@ -277,28 +261,28 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
   &quot;refresh_token&quot;: &quot;ort_selector.secret&quot;
 }</code></pre>
 <p><strong>Refresh Token Payload</strong></p>
-<div class="table-wrap"><table><thead><tr><th>欄位</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">grant_type</code></td><td>是</td><td><code translate="no">refresh_token</code></td></tr><tr><td><code translate="no">refresh_token</code></td><td>是</td><td>最近一次取得的 OAuth Refresh Token</td></tr><tr><td><code translate="no">client_id</code></td><td>是</td><td>原 client ID</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>栏位</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">grant_type</code></td><td>是</td><td><code translate="no">refresh_token</code></td></tr><tr><td><code translate="no">refresh_token</code></td><td>是</td><td>最近一次取得的 OAuth Refresh Token</td></tr><tr><td><code translate="no">client_id</code></td><td>是</td><td>原 client ID</td></tr></tbody></table></div>
 <p>Refresh 成功回新的 <code translate="no">access_token</code>、<code translate="no">refresh_token</code>、<code translate="no">token_type</code>、<code translate="no">expires_in</code>、<code translate="no">scope</code>，不回新的 <code translate="no">id_token</code>。</p>
 <p><strong>Errors：</strong> <code translate="no">invalid_request</code>、<code translate="no">invalid_client</code>、<code translate="no">invalid_grant</code>、<code translate="no">unsupported_grant_type</code>。</p>
-<p><strong>Security：</strong> Refresh Token 每次使用後輪替；只能保留最新一張。Authorization Code 驗證失敗後不得重用。</p>
+<p><strong>Security：</strong> Refresh Token 每次使用后轮替；只能保留最新一张。Authorization Code 验证失败后不得重用。</p>
 <h3 id="post-realms-slug-oauth-revoke" class="endpoint-title">POST /realms/{slug}/oauth/revoke</h3>
-<p>撤銷 Access 或 Refresh Token，遵循 RFC 7009。</p>
+<p>撤销 Access 或 Refresh Token，遵循 RFC 7009。</p>
 <p><strong>Headers：</strong> <code translate="no">Content-Type: application/x-www-form-urlencoded</code></p>
 <p><strong>Path Parameters：</strong> <code translate="no">slug</code>。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
 <p><strong>Payload</strong></p>
-<div class="table-wrap"><table><thead><tr><th>欄位</th><th>必要</th><th>說明</th></tr></thead><tbody><tr><td><code translate="no">token</code></td><td>是</td><td>要撤銷的 Token</td></tr><tr><td><code translate="no">client_id</code></td><td>是</td><td>Token 所屬 client</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>栏位</th><th>必要</th><th>说明</th></tr></thead><tbody><tr><td><code translate="no">token</code></td><td>是</td><td>要撤销的 Token</td></tr><tr><td><code translate="no">client_id</code></td><td>是</td><td>Token 所属 client</td></tr></tbody></table></div>
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{}</code></pre>
-<p>Token 是否存在皆回相同成功結果。</p>
-<p><strong>Errors：</strong> Client 不存在或停權回 <code translate="no">401 invalid_client</code>；格式錯誤回 <code translate="no">invalid_request</code>。</p>
-<p><strong>Security：</strong> 不得依 Response 推斷 Token 是否曾存在。</p>
+<p>Token 是否存在皆回相同成功结果。</p>
+<p><strong>Errors：</strong> Client 不存在或停权回 <code translate="no">401 invalid_client</code>；格式错误回 <code translate="no">invalid_request</code>。</p>
+<p><strong>Security：</strong> 不得依 Response 推断 Token 是否曾存在。</p>
 <h3 id="post-realms-slug-oauth-introspect" class="endpoint-title">POST /realms/{slug}/oauth/introspect</h3>
-<p>Resource Server 以 S2S API Key 查詢 Token 狀態，遵循 RFC 7662。</p>
+<p>Resource Server 以 S2S API Key 查询 Token 状态，遵循 RFC 7662。</p>
 <p><strong>Headers</strong></p>
-<div class="table-wrap"><table><thead><tr><th>名稱</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">Authorization</code></td><td>是</td><td><code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">Content-Type</code></td><td>是</td><td><code translate="no">application/x-www-form-urlencoded</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>名称</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">Authorization</code></td><td>是</td><td><code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">Content-Type</code></td><td>是</td><td><code translate="no">application/x-www-form-urlencoded</code></td></tr></tbody></table></div>
 <p><strong>Path Parameters：</strong> <code translate="no">slug</code>。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
 <p><strong>Payload：</strong> <code translate="no">token=&lt;access_or_refresh_token&gt;</code>。</p>
 <p><strong>Inactive：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{&quot;active&quot;: false}</code></pre>
@@ -314,172 +298,172 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
   &quot;token_type&quot;: &quot;access_token&quot;,
   &quot;iss&quot;: &quot;https://identity.lifeintent.app/realms/topinkiwi&quot;
 }</code></pre>
-<p><strong>Errors：</strong> 缺少、錯誤或跨 Realm API Key 一律回相同 <code translate="no">401 invalid_client</code>。</p>
-<p><strong>Security：</strong> 一般請求優先本地 JWKS 驗章；只有需要即時撤銷狀態時使用 Introspection。</p>
-<h2 id="6-登入與-session">6. 登入與 Session</h2>
-<p>本章所有 <code translate="no">/v1/*</code> 端點都要帶 <code translate="no">X-Session-Platform-Code</code>。</p>
+<p><strong>Errors：</strong> 缺少、错误或跨 Realm API Key 一律回相同 <code translate="no">401 invalid_client</code>。</p>
+<p><strong>Security：</strong> 一般请求优先本地 JWKS 验章；只有需要即时撤销状态时使用 Introspection。</p>
+<h2 id="6-登入与-session">6. 登入与 Session</h2>
+<p>本章所有 <code translate="no">/v1/*</code> 端点都要带 <code translate="no">X-Session-Platform-Code</code>。</p>
 <h3 id="post-v1-auth-login" class="endpoint-title">POST /v1/auth/login</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
-<p><strong>Path Parameters：</strong> 無。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
+<p><strong>Path Parameters：</strong> 无。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
 <p><strong>Payload</strong></p>
-<div class="table-wrap"><table><thead><tr><th>欄位</th><th>型別</th><th>必要</th><th>說明</th></tr></thead><tbody><tr><td><code translate="no">username</code></td><td>string</td><td>是</td><td>帳號</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>是</td><td>密碼</td></tr><tr><td><code translate="no">tenant</code></td><td>string</td><td>是</td><td>無租戶時傳 <code translate="no">""</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>栏位</th><th>型别</th><th>必要</th><th>说明</th></tr></thead><tbody><tr><td><code translate="no">username</code></td><td>string</td><td>是</td><td>帐号</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>是</td><td>密码</td></tr><tr><td><code translate="no">tenant</code></td><td>string</td><td>是</td><td>无租户时传 <code translate="no">""</code></td></tr></tbody></table></div>
 <pre><code class="language-json">{&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;S3cure-Pass!&quot;,&quot;tenant&quot;:&quot;&quot;}</code></pre>
 <p><strong>Success A：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{&quot;data&quot;:{&quot;access_token&quot;:&quot;eyJ...&quot;,&quot;refresh_token&quot;:&quot;rt_...&quot;,&quot;expires_in&quot;:2700}}</code></pre>
 <p><strong>Success B：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{&quot;data&quot;:{&quot;mfa_required&quot;:true,&quot;mfa_token&quot;:&quot;mfa_...&quot;}}</code></pre>
 <p><strong>Errors：</strong> <code translate="no">AUTH_INVALID_CREDENTIALS</code>、<code translate="no">AUTH_ACCOUNT_DISABLED</code>、<code translate="no">AUTH_ACCOUNT_LOCKED</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>、<code translate="no">AUTH_PLATFORM_UNKNOWN</code>、<code translate="no">COMMON_RATE_LIMITED</code>。</p>
-<p><strong>Security：</strong> Response 帶 <code translate="no">Cache-Control: no-store</code>；帳號不存在與密碼錯誤不可區分。</p>
+<p><strong>Security：</strong> Response 带 <code translate="no">Cache-Control: no-store</code>；帐号不存在与密码错误不可区分。</p>
 <h3 id="post-v1-auth-refresh" class="endpoint-title">POST /v1/auth/refresh</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Payload</strong></p>
 <pre><code class="language-json">{&quot;refresh_token&quot;:&quot;rt_...&quot;}</code></pre>
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{&quot;data&quot;:{&quot;access_token&quot;:&quot;eyJ...&quot;,&quot;refresh_token&quot;:&quot;rt_new...&quot;,&quot;expires_in&quot;:2700}}</code></pre>
 <p><strong>Errors：</strong> <code translate="no">AUTH_REFRESH_INVALID</code>、<code translate="no">AUTH_REFRESH_REUSED</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Refresh Token 每次換發立即輪替；重用舊 Token 會撤銷該帳號所有 Refresh Token。</p>
+<p><strong>Security：</strong> Refresh Token 每次换发立即轮替；重用旧 Token 会撤销该帐号所有 Refresh Token。</p>
 <h3 id="post-v1-auth-logout" class="endpoint-title">POST /v1/auth/logout</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Payload：</strong> <code translate="no">{"refresh_token":"rt_..."}</code>。</p>
-<p>**Success：<code translate="no">204 No Content</code>，無 Response body。</p>
-<p><strong>Errors：</strong> Payload 無效時為 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> 有效或不存在的 Token 不應造成可辨識差異。</p>
+<p>**Success：<code translate="no">204 No Content</code>，无 Response body。</p>
+<p><strong>Errors：</strong> Payload 无效时为 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
+<p><strong>Security：</strong> 有效或不存在的 Token 不应造成可辨识差异。</p>
 <h3 id="get-v1-well-known-jwks-json" class="endpoint-title">GET /v1/.well-known/jwks.json</h3>
-<p>取得 platform profile 的公開驗章金鑰。</p>
+<p>取得 platform profile 的公开验章金钥。</p>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code></p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
-<p><strong>Payload：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
+<p><strong>Payload：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，格式同 Realm JWKS，<code translate="no">Cache-Control: public, max-age=300</code>。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_PLATFORM_UNKNOWN</code>、<code translate="no">COMMON_INTERNAL_ERROR</code>。</p>
-<p><strong>Security：</strong> <code translate="no">/v1</code> Access Token 驗證需同時檢核 RS256 簽章、<code translate="no">iss</code>、<code translate="no">aud</code>、<code translate="no">exp</code> 與允許的 <code translate="no">typ</code>。</p>
+<p><strong>Security：</strong> <code translate="no">/v1</code> Access Token 验证需同时检核 RS256 签章、<code translate="no">iss</code>、<code translate="no">aud</code>、<code translate="no">exp</code> 与允许的 <code translate="no">typ</code>。</p>
 <h2 id="7-mfa">7. MFA</h2>
 <h3 id="post-v1-auth-mfa-verify" class="endpoint-title">POST /v1/auth/mfa/verify</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"mfa_token":"mfa_...","code":"123456"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，回 TokenResponse。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_MFA_INVALID_CODE</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> <code translate="no">mfa_token</code> 5 分鐘、一次性；驗證失敗也會消耗。</p>
+<p><strong>Security：</strong> <code translate="no">mfa_token</code> 5 分钟、一次性；验证失败也会消耗。</p>
 <h3 id="post-v1-auth-mfa-recovery" class="endpoint-title">POST /v1/auth/mfa/recovery</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"mfa_token":"mfa_...","recovery_code":"XXXXX-XXXXX"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，回 TokenResponse。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_RECOVERY_CODE_INVALID</code>、<code translate="no">AUTH_MFA_INVALID_CODE</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> 備援碼使用後立即失效。</p>
+<p><strong>Security：</strong> 备援码使用后立即失效。</p>
 <h3 id="post-v1-auth-mfa-setup" class="endpoint-title">POST /v1/auth/mfa/setup</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Authorization: Bearer &lt;access_token&gt;</code></p>
-<p><strong>Content-Type／Payload：</strong> 無。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Content-Type／Payload：</strong> 无。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{&quot;data&quot;:{&quot;secret&quot;:&quot;BASE32SECRET&quot;,&quot;otpauth_uri&quot;:&quot;otpauth://totp/...&quot;}}</code></pre>
 <p><strong>Errors：</strong> <code translate="no">AUTH_TOKEN_INVALID</code>、<code translate="no">AUTH_TOKEN_EXPIRED</code>、<code translate="no">AUTH_TOKEN_REVOKED</code>、<code translate="no">AUTH_MFA_ALREADY_ENABLED</code>。</p>
-<p><strong>Security：</strong> <code translate="no">secret</code> 只用於當次綁定畫面，不得寫入 Log。</p>
+<p><strong>Security：</strong> <code translate="no">secret</code> 只用于当次绑定画面，不得写入 Log。</p>
 <h3 id="post-v1-auth-mfa-activate" class="endpoint-title">POST /v1/auth/mfa/activate</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Authorization: Bearer &lt;access_token&gt;</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"code":"123456"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
-<pre><code class="language-json">{&quot;data&quot;:{&quot;enabled&quot;:true,&quot;recovery_codes&quot;:[&quot;XXXXX-XXXXX&quot;,&quot;...共 10 組&quot;]}}</code></pre>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;enabled&quot;:true,&quot;recovery_codes&quot;:[&quot;XXXXX-XXXXX&quot;,&quot;...共 10 组&quot;]}}</code></pre>
 <p><strong>Errors：</strong> <code translate="no">AUTH_MFA_INVALID_CODE</code>、<code translate="no">AUTH_TOKEN_INVALID</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Recovery Codes 僅此一次明文回傳，Client 必須立即交付使用者安全保存。</p>
+<p><strong>Security：</strong> Recovery Codes 仅此一次明文回传，Client 必须立即交付使用者安全保存。</p>
 <h3 id="post-v1-auth-mfa-disable" class="endpoint-title">POST /v1/auth/mfa/disable</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Authorization: Bearer &lt;access_token&gt;</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"password":"current-password","code":"123456"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"data":{"enabled":false}}</code>。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_INVALID_CREDENTIALS</code>、<code translate="no">AUTH_MFA_INVALID_CODE</code>、<code translate="no">AUTH_TOKEN_INVALID</code>。</p>
-<p><strong>Security：</strong> 停用會使既有 Recovery Codes 作廢。</p>
+<p><strong>Security：</strong> 停用会使既有 Recovery Codes 作废。</p>
 <h3 id="post-v1-auth-mfa-recovery-codes-regenerate" class="endpoint-title">POST /v1/auth/mfa/recovery-codes/regenerate</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Authorization: Bearer &lt;access_token&gt;</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"password":"current-password","code":"123456"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
-<pre><code class="language-json">{&quot;data&quot;:{&quot;recovery_codes&quot;:[&quot;XXXXX-XXXXX&quot;,&quot;...共 10 組&quot;]}}</code></pre>
+<pre><code class="language-json">{&quot;data&quot;:{&quot;recovery_codes&quot;:[&quot;XXXXX-XXXXX&quot;,&quot;...共 10 组&quot;]}}</code></pre>
 <p><strong>Errors：</strong> <code translate="no">AUTH_INVALID_CREDENTIALS</code>、<code translate="no">AUTH_MFA_INVALID_CODE</code>、<code translate="no">AUTH_TOKEN_INVALID</code>。</p>
-<p><strong>Security：</strong> 舊 Recovery Codes 全部失效；新 Codes 僅此一次明文回傳。</p>
-<h2 id="8-註冊-email-密碼與高權限帳號復原">8. 註冊、Email、密碼與高權限帳號復原</h2>
+<p><strong>Security：</strong> 旧 Recovery Codes 全部失效；新 Codes 仅此一次明文回传。</p>
+<h2 id="8-注册-email-密码与高权限帐号复原">8. 注册、Email、密码与高权限帐号复原</h2>
 <h3 id="post-v1-auth-register" class="endpoint-title">POST /v1/auth/register</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"email":"alice@example.com","password":"correct-horse-battery"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：<code translate="no">202 Accepted</code></strong></p>
 <pre><code class="language-json">{&quot;data&quot;:{&quot;accepted&quot;:true}}</code></pre>
-<p><strong>Errors：</strong> Email／密碼格式或 Realm 不允許自助註冊為 <code translate="no">COMMON_VALIDATION_FAILED</code>；已知外洩密碼為 <code translate="no">AUTH_PASSWORD_COMPROMISED</code>；共享配額超限為 <code translate="no">COMMON_RATE_LIMITED</code>。</p>
-<p><strong>Security：</strong> 成功與同 Realm 等價 Email 已存在回完全相同的狀態與 Body。密碼必須為 12～128 個 Unicode 字元；Account、Credential、Primary Email 與 Required Action 同一 Transaction 建立。只允許要求 Email 驗證、允許 pending 且不要求 MFA 才能啟用的 member Realm；<code translate="no">system</code> Realm 一律拒絕。註冊後寄信若暫時失敗，可安全呼叫重寄端點補償。所有 Lambda Runtime 共用 PostgreSQL 雙層限制：同 Realm／IP 預設 5 次每 10 分鐘、單一 Realm 預設 100 次每分鐘；只落地 IP 的 HMAC。</p>
+<p><strong>Errors：</strong> Email／密码格式或 Realm 不允许自助注册为 <code translate="no">COMMON_VALIDATION_FAILED</code>；已知外泄密码为 <code translate="no">AUTH_PASSWORD_COMPROMISED</code>；共享配额超限为 <code translate="no">COMMON_RATE_LIMITED</code>。</p>
+<p><strong>Security：</strong> 成功与同 Realm 等价 Email 已存在回完全相同的状态与 Body。密码必须为 12～128 个 Unicode 字元；Account、Credential、Primary Email 与 Required Action 同一 Transaction 建立。只允许要求 Email 验证、允许 pending 且不要求 MFA 才能启用的 member Realm；<code translate="no">system</code> Realm 一律拒绝。注册后寄信若暂时失败，可安全呼叫重寄端点补偿。所有 Lambda Runtime 共用 PostgreSQL 双层限制：同 Realm／IP 预设 5 次每 10 分钟、单一 Realm 预设 100 次每分钟；只落地 IP 的 HMAC。</p>
 <h3 id="post-v1-auth-email-verify-request" class="endpoint-title">POST /v1/auth/email/verify/request</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"email":"alice@example.com"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">202 Accepted</code>，<code translate="no">{"data":{"accepted":true}}</code>。</p>
-<p><strong>Errors：</strong> 空白或非法 Payload 為 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Generic Response；Email 是否存在、是否已驗證、是否被帳號級限流或寄送是否成功都不可由 Response 判斷。同帳號、同用途的限制預設為 1 分鐘冷卻、每小時 5 次、24 小時 10 次；成功重寄時舊 Token 立即失效。</p>
+<p><strong>Errors：</strong> 空白或非法 Payload 为 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
+<p><strong>Security：</strong> Generic Response；Email 是否存在、是否已验证、是否被帐号级限流或寄送是否成功都不可由 Response 判断。同帐号、同用途的限制预设为 1 分钟冷却、每小时 5 次、24 小时 10 次；成功重寄时旧 Token 立即失效。</p>
 <h3 id="post-v1-auth-email-verify-confirm" class="endpoint-title">POST /v1/auth/email/verify/confirm</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"token":"evt_opaque_value"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"data":{"verified":true}}</code>。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_RECOVERY_TOKEN_INVALID</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Token 短效、一次性且綁定 Realm，完成後不可重用。若 <code translate="no">verify_email</code> 是最後一個 Required Action，Email、Action 與帳號啟用在同一 Transaction 落地。</p>
+<p><strong>Security：</strong> Token 短效、一次性且绑定 Realm，完成后不可重用。若 <code translate="no">verify_email</code> 是最后一个 Required Action，Email、Action 与帐号启用在同一 Transaction 落地。</p>
 <h3 id="post-v1-auth-password-reset-request" class="endpoint-title">POST /v1/auth/password/reset/request</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"email":"alice@example.com"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">202 Accepted</code>，<code translate="no">{"data":{"accepted":true}}</code>。</p>
-<p><strong>Errors：</strong> 空白或非法 Payload 為 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Generic Response，避免帳號枚舉；與驗證信共用帳號級原子限流政策，但依 <code translate="no">password_reset</code> 用途獨立計數。成功重寄時舊 Token 立即失效。</p>
+<p><strong>Errors：</strong> 空白或非法 Payload 为 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
+<p><strong>Security：</strong> Generic Response，避免帐号枚举；与验证信共用帐号级原子限流政策，但依 <code translate="no">password_reset</code> 用途独立计数。成功重寄时旧 Token 立即失效。</p>
 <h3 id="post-v1-auth-password-reset-confirm" class="endpoint-title">POST /v1/auth/password/reset/confirm</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"token":"pr_opaque_value","new_password":"new-secure-password"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"data":{"reset":true}}</code>。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_RECOVERY_TOKEN_INVALID</code>、<code translate="no">AUTH_PASSWORD_COMPROMISED</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> 成功後撤銷該帳號既有 Refresh Token；新密碼不得出現在已知外洩清單。</p>
+<p><strong>Security：</strong> 成功后撤销该帐号既有 Refresh Token；新密码不得出现在已知外泄清单。</p>
 <h3 id="post-v1-auth-privileged-recovery-request" class="endpoint-title">POST /v1/auth/privileged-recovery/request</h3>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"tenant":"","username":"staff-user"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"data":{}}</code>。</p>
-<p><strong>Errors：</strong> Payload 無效為 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Generic Response；帳號是否存在或是否為高權限帳號不可辨識。只有具備已驗證 Primary Email 的高權限帳號才會建立請求並寄送 Token；Email Sender 未設定時此組端點不掛載。</p>
+<p><strong>Errors：</strong> Payload 无效为 <code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
+<p><strong>Security：</strong> Generic Response；帐号是否存在或是否为高权限帐号不可辨识。只有具备已验证 Primary Email 的高权限帐号才会建立请求并寄送 Token；Email Sender 未设定时此组端点不挂载。</p>
 <h3 id="post-v1-auth-privileged-recovery-complete" class="endpoint-title">POST /v1/auth/privileged-recovery/complete</h3>
-<p>以 Email Token 加既有 Recovery Code 完成高權限帳號 MFA 復原。</p>
+<p>以 Email Token 加既有 Recovery Code 完成高权限帐号 MFA 复原。</p>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"token":"pvr_opaque_value","recovery_code":"XXXXX-XXXXX"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"data":{}}</code>。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_PRIVILEGED_RECOVERY_INVALID</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> Token 與 Recovery Code 都必須有效；任何失敗收斂為同一錯誤，避免側信道。</p>
+<p><strong>Security：</strong> Token 与 Recovery Code 都必须有效；任何失败收敛为同一错误，避免侧信道。</p>
 <h3 id="post-v1-auth-privileged-recovery-complete-with-approval" class="endpoint-title">POST /v1/auth/privileged-recovery/complete-with-approval</h3>
-<p>以 Email Token 加營運方已核准狀態完成復原。</p>
+<p>以 Email Token 加营运方已核准状态完成复原。</p>
 <p><strong>Headers：</strong> <code translate="no">X-Session-Platform-Code</code>、<code translate="no">Content-Type: application/json</code></p>
 <p><strong>Payload：</strong> <code translate="no">{"token":"pvr_opaque_value"}</code>。</p>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"data":{}}</code>。</p>
 <p><strong>Errors：</strong> <code translate="no">AUTH_PRIVILEGED_RECOVERY_INVALID</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> 未核准、過期、已使用或錯誤 Token 皆回相同錯誤。</p>
-<h2 id="9-s2s-帳號供應">9. S2S 帳號供應</h2>
-<p>S2S 端點只能由平台後端呼叫。每個請求都要同時帶 platform code 與該 Realm 的 API Key。</p>
+<p><strong>Security：</strong> 未核准、过期、已使用或错误 Token 皆回相同错误。</p>
+<h2 id="9-s2s-帐号供应">9. S2S 帐号供应</h2>
+<p>S2S 端点只能由平台后端呼叫。每个请求都要同时带 platform code 与该 Realm 的 API Key。</p>
 <h3 id="post-v1-internal-accounts" class="endpoint-title">POST /v1/internal/accounts</h3>
 <p><strong>Headers</strong></p>
-<div class="table-wrap"><table><thead><tr><th>名稱</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">X-Session-Platform-Code</code></td><td>是</td><td><code translate="no">&lt;platform_code&gt;</code></td></tr><tr><td><code translate="no">Authorization</code></td><td>是</td><td><code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">Content-Type</code></td><td>是</td><td><code translate="no">application/json</code></td></tr></tbody></table></div>
-<p><strong>Path／Query Parameters：</strong> 無。</p>
+<div class="table-wrap"><table><thead><tr><th>名称</th><th>必要</th><th>值</th></tr></thead><tbody><tr><td><code translate="no">X-Session-Platform-Code</code></td><td>是</td><td><code translate="no">&lt;platform_code&gt;</code></td></tr><tr><td><code translate="no">Authorization</code></td><td>是</td><td><code translate="no">Bearer &lt;sk_API_KEY&gt;</code></td></tr><tr><td><code translate="no">Content-Type</code></td><td>是</td><td><code translate="no">application/json</code></td></tr></tbody></table></div>
+<p><strong>Path／Query Parameters：</strong> 无。</p>
 <p><strong>Payload</strong></p>
-<div class="table-wrap"><table><thead><tr><th>欄位</th><th>型別</th><th>必要</th><th>說明</th></tr></thead><tbody><tr><td><code translate="no">tenant</code></td><td>string</td><td>是</td><td>無租戶時傳 <code translate="no">""</code></td></tr><tr><td><code translate="no">type</code></td><td>string</td><td>是</td><td><code translate="no">member</code> 或 <code translate="no">staff</code></td></tr><tr><td><code translate="no">username</code></td><td>string</td><td>是</td><td>平台內帳號名稱</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>是</td><td>初始密碼，最大 1024 字元</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>栏位</th><th>型别</th><th>必要</th><th>说明</th></tr></thead><tbody><tr><td><code translate="no">tenant</code></td><td>string</td><td>是</td><td>无租户时传 <code translate="no">""</code></td></tr><tr><td><code translate="no">type</code></td><td>string</td><td>是</td><td><code translate="no">member</code> 或 <code translate="no">staff</code></td></tr><tr><td><code translate="no">username</code></td><td>string</td><td>是</td><td>平台内帐号名称</td></tr><tr><td><code translate="no">password</code></td><td>string</td><td>是</td><td>初始密码，最大 1024 字元</td></tr></tbody></table></div>
 <pre><code class="language-json">{&quot;tenant&quot;:&quot;&quot;,&quot;type&quot;:&quot;member&quot;,&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;S3cure-Pass!&quot;}</code></pre>
 <p><strong>Success：<code translate="no">201 Created</code></strong></p>
 <pre><code class="language-json">{&quot;data&quot;:{&quot;sub&quot;:&quot;acc_01...&quot;}}</code></pre>
 <p><strong>Errors：</strong> <code translate="no">AUTH_TOKEN_INVALID</code>、<code translate="no">AUTH_PLATFORM_UNKNOWN</code>、<code translate="no">COMMON_IDEMPOTENCY_CONFLICT</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>。</p>
-<p><strong>Security：</strong> <code translate="no">sub</code> 是接入方連結業務資料的穩定識別；不得儲存明文密碼。API Key 跨 Realm 使用一律拒絕。</p>
+<p><strong>Security：</strong> <code translate="no">sub</code> 是接入方连结业务资料的稳定识别；不得储存明文密码。API Key 跨 Realm 使用一律拒绝。</p>
 <h3 id="patch-v1-internal-accounts-sub" class="endpoint-title">PATCH /v1/internal/accounts/{sub}</h3>
-<p>對帳號執行停用／啟用、重設密碼或緊急撤銷，三者只能選一個。</p>
-<p><strong>Headers：</strong> 同帳號供應端點。</p>
-<p><strong>Path Parameters：</strong> <code translate="no">sub</code>，<code translate="no">acc_</code> 開頭的帳號識別。</p>
-<p><strong>Query Parameters：</strong> 無。</p>
-<p><strong>Payload，三選一</strong></p>
+<p>对帐号执行停用／启用、重设密码或紧急撤销，三者只能选一个。</p>
+<p><strong>Headers：</strong> 同帐号供应端点。</p>
+<p><strong>Path Parameters：</strong> <code translate="no">sub</code>，<code translate="no">acc_</code> 开头的帐号识别。</p>
+<p><strong>Query Parameters：</strong> 无。</p>
+<p><strong>Payload，三选一</strong></p>
 <pre><code class="language-json">{&quot;status&quot;:&quot;disabled&quot;}</code></pre>
 <pre><code class="language-json">{&quot;reset_password&quot;:&quot;new-secure-password&quot;}</code></pre>
 <pre><code class="language-json">{&quot;revoke_all&quot;:true}</code></pre>
@@ -487,33 +471,33 @@ pre{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);b
 <p><strong>Success：<code translate="no">200 OK</code></strong></p>
 <pre><code class="language-json">{&quot;data&quot;:{&quot;sub&quot;:&quot;acc_01...&quot;,&quot;applied&quot;:true}}</code></pre>
 <p><strong>Errors：</strong> <code translate="no">COMMON_NOT_FOUND</code>、<code translate="no">COMMON_VALIDATION_FAILED</code>、<code translate="no">AUTH_TOKEN_INVALID</code>。</p>
-<p><strong>Security：</strong> 停用帳號會撤銷 Refresh Token；<code translate="no">revoke_all</code> 用於疑似帳號遭竊的緊急處置。</p>
-<h2 id="10-健康檢查">10. 健康檢查</h2>
+<p><strong>Security：</strong> 停用帐号会撤销 Refresh Token；<code translate="no">revoke_all</code> 用于疑似帐号遭窃的紧急处置。</p>
+<h2 id="10-健康检查">10. 健康检查</h2>
 <h3 id="get-livez" class="endpoint-title">GET /livez</h3>
-<p><strong>Headers／Path／Query／Payload：</strong> 無。</p>
-<p><strong>認證：</strong> 無。</p>
+<p><strong>Headers／Path／Query／Payload：</strong> 无。</p>
+<p><strong>认证：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"status":"live"}</code>。</p>
-<p><strong>用途：</strong> Process 存活檢查，不代表資料庫已就緒。</p>
+<p><strong>用途：</strong> Process 存活检查，不代表资料库已就绪。</p>
 <h3 id="get-readyz" class="endpoint-title">GET /readyz</h3>
-<p><strong>Headers／Path／Query／Payload：</strong> 無。</p>
-<p><strong>認證：</strong> 無。</p>
+<p><strong>Headers／Path／Query／Payload：</strong> 无。</p>
+<p><strong>认证：</strong> 无。</p>
 <p><strong>Success：</strong> <code translate="no">200 OK</code>，<code translate="no">{"status":"ready"}</code>。</p>
 <p><strong>Not Ready：</strong> <code translate="no">503 Service Unavailable</code>，<code translate="no">{"status":"not_ready"}</code>。</p>
-<p><strong>用途：</strong> 驗證服務依賴是否可用。</p>
-<h2 id="11-token-與安全規範">11. Token 與安全規範</h2>
-<div class="table-wrap"><table><thead><tr><th>憑證</th><th>形式</th><th>核心規範</th></tr></thead><tbody><tr><td><code translate="no">/v1</code> Access Token</td><td>RS256 JWT</td><td>本地 JWKS 驗章；驗 <code translate="no">iss</code>、<code translate="no">aud</code>、<code translate="no">exp</code>、<code translate="no">typ</code></td></tr><tr><td><code translate="no">/v1</code> Refresh Token</td><td><code translate="no">rt_...</code> 不透明值</td><td>輪替；重用觸發整帳號撤銷</td></tr><tr><td>OAuth Access Token</td><td><code translate="no">typ=at+jwt</code> RS256 JWT</td><td>Realm issuer；預設短效</td></tr><tr><td>OAuth ID Token</td><td>RS256 JWT</td><td>驗 <code translate="no">aud == client_id</code>、<code translate="no">nonce</code>、<code translate="no">iss</code>、<code translate="no">exp</code></td></tr><tr><td>OAuth Refresh Token</td><td>Selector + Secret 不透明值</td><td>綁定 client 與 session，每次使用輪替</td></tr><tr><td>Authorization Code</td><td>不透明值</td><td>短效、一次性、綁定 redirect URI 與 PKCE</td></tr><tr><td><code translate="no">mfa_token</code></td><td><code translate="no">mfa_...</code></td><td>5 分鐘、一次性</td></tr><tr><td>Recovery Code</td><td><code translate="no">XXXXX-XXXXX</code></td><td>一次性，只在產生時顯示</td></tr><tr><td>S2S API Key</td><td><code translate="no">sk_...</code></td><td>僅後端保存、Realm-scoped</td></tr></tbody></table></div>
-<p>客戶端必須：</p>
+<p><strong>用途：</strong> 验证服务依赖是否可用。</p>
+<h2 id="11-token-与安全规范">11. Token 与安全规范</h2>
+<div class="table-wrap"><table><thead><tr><th>凭证</th><th>形式</th><th>核心规范</th></tr></thead><tbody><tr><td><code translate="no">/v1</code> Access Token</td><td>RS256 JWT</td><td>本地 JWKS 验章；验 <code translate="no">iss</code>、<code translate="no">aud</code>、<code translate="no">exp</code>、<code translate="no">typ</code></td></tr><tr><td><code translate="no">/v1</code> Refresh Token</td><td><code translate="no">rt_...</code> 不透明值</td><td>轮替；重用触发整帐号撤销</td></tr><tr><td>OAuth Access Token</td><td><code translate="no">typ=at+jwt</code> RS256 JWT</td><td>Realm issuer；预设短效</td></tr><tr><td>OAuth ID Token</td><td>RS256 JWT</td><td>验 <code translate="no">aud == client_id</code>、<code translate="no">nonce</code>、<code translate="no">iss</code>、<code translate="no">exp</code></td></tr><tr><td>OAuth Refresh Token</td><td>Selector + Secret 不透明值</td><td>绑定 client 与 session，每次使用轮替</td></tr><tr><td>Authorization Code</td><td>不透明值</td><td>短效、一次性、绑定 redirect URI 与 PKCE</td></tr><tr><td><code translate="no">mfa_token</code></td><td><code translate="no">mfa_...</code></td><td>5 分钟、一次性</td></tr><tr><td>Recovery Code</td><td><code translate="no">XXXXX-XXXXX</code></td><td>一次性，只在产生时显示</td></tr><tr><td>S2S API Key</td><td><code translate="no">sk_...</code></td><td>仅后端保存、Realm-scoped</td></tr></tbody></table></div>
+<p>客户端必须：</p>
 <ol>
-<li>只接受 <code translate="no">RS256</code>，拒絕 <code translate="no">alg=none</code>、HMAC 混淆與未知演算法。</li>
-<li>驗證 Token 的 issuer、audience、expiry、type 與必要 nonce。</li>
-<li>不將密碼、Token、API Key、MFA Secret、Recovery Code 寫入 Log。</li>
-<li>對 <code translate="no">429</code> 依 <code translate="no">Retry-After</code> 退避；對一般 <code translate="no">4xx</code> 不自動重試。</li>
-<li>對 OAuth Redirect URI 採 Exact Match，不自行正規化尾斜線。</li>
-<li>Access Token 優先放記憶體；若使用 Cookie，必須使用 <code translate="no">HttpOnly</code>、<code translate="no">Secure</code> 與合適 <code translate="no">SameSite</code>。</li>
+<li>只接受 <code translate="no">RS256</code>，拒绝 <code translate="no">alg=none</code>、HMAC 混淆与未知演算法。</li>
+<li>验证 Token 的 issuer、audience、expiry、type 与必要 nonce。</li>
+<li>不将密码、Token、API Key、MFA Secret、Recovery Code 写入 Log。</li>
+<li>对 <code translate="no">429</code> 依 <code translate="no">Retry-After</code> 退避；对一般 <code translate="no">4xx</code> 不自动重试。</li>
+<li>对 OAuth Redirect URI 采 Exact Match，不自行正规化尾斜线。</li>
+<li>Access Token 优先放记忆体；若使用 Cookie，必须使用 <code translate="no">HttpOnly</code>、<code translate="no">Secure</code> 与合适 <code translate="no">SameSite</code>。</li>
 </ol>
-<h2 id="12-錯誤碼">12. 錯誤碼</h2>
-<div class="table-wrap"><table><thead><tr><th>id</th><th>code</th><th>HTTP</th><th>說明</th></tr></thead><tbody><tr><td>1000</td><td><code translate="no">COMMON_INTERNAL_ERROR</code></td><td>500</td><td>內部錯誤，憑 <code translate="no">trace_id</code> 回報</td></tr><tr><td>1001</td><td><code translate="no">COMMON_VALIDATION_FAILED</code></td><td>422</td><td>JSON、欄位、型別或限制不符</td></tr><tr><td>1002</td><td><code translate="no">COMMON_NOT_FOUND</code></td><td>404</td><td>資源或路徑不存在</td></tr><tr><td>1003</td><td><code translate="no">COMMON_RATE_LIMITED</code></td><td>429</td><td>請依 <code translate="no">Retry-After</code> 退避</td></tr><tr><td>1004</td><td><code translate="no">COMMON_IDEMPOTENCY_CONFLICT</code></td><td>409</td><td>唯一資源已存在</td></tr><tr><td>1005</td><td><code translate="no">COMMON_FORBIDDEN</code></td><td>403</td><td>已驗證但權限不足</td></tr><tr><td>2001</td><td><code translate="no">AUTH_INVALID_CREDENTIALS</code></td><td>401</td><td>帳號或密碼錯誤</td></tr><tr><td>2002</td><td><code translate="no">AUTH_ACCOUNT_DISABLED</code></td><td>403</td><td>帳號停用</td></tr><tr><td>2003</td><td><code translate="no">AUTH_ACCOUNT_LOCKED</code></td><td>423</td><td>多次登入失敗後暫時鎖定</td></tr><tr><td>2004</td><td><code translate="no">AUTH_MFA_REQUIRED</code></td><td>401</td><td>流程需要 MFA</td></tr><tr><td>2005</td><td><code translate="no">AUTH_MFA_INVALID_CODE</code></td><td>401</td><td>TOTP 或 challenge 無效</td></tr><tr><td>2006</td><td><code translate="no">AUTH_MFA_ALREADY_ENABLED</code></td><td>409</td><td>MFA 已啟用</td></tr><tr><td>2007</td><td><code translate="no">AUTH_RECOVERY_CODE_INVALID</code></td><td>401</td><td>Recovery Code 無效或已使用</td></tr><tr><td>2008</td><td><code translate="no">AUTH_REFRESH_INVALID</code></td><td>401</td><td>Refresh Token 無效或過期</td></tr><tr><td>2009</td><td><code translate="no">AUTH_REFRESH_REUSED</code></td><td>401</td><td>偵測到 Refresh Token 重用</td></tr><tr><td>2010</td><td><code translate="no">AUTH_TOKEN_EXPIRED</code></td><td>401</td><td>Access Token 已過期</td></tr><tr><td>2011</td><td><code translate="no">AUTH_TOKEN_INVALID</code></td><td>401</td><td>JWT、API Key 或 Bearer 格式無效</td></tr><tr><td>2012</td><td><code translate="no">AUTH_TOKEN_REVOKED</code></td><td>401</td><td>Token 已緊急撤銷</td></tr><tr><td>2013</td><td><code translate="no">AUTH_PLATFORM_UNKNOWN</code></td><td>400</td><td>Platform code 無法解析、未知或停權</td></tr><tr><td>2014</td><td><code translate="no">AUTH_RECOVERY_TOKEN_INVALID</code></td><td>401</td><td>Email／密碼復原 Token 無效、過期或已使用</td></tr><tr><td>2015</td><td><code translate="no">AUTH_PASSWORD_COMPROMISED</code></td><td>422</td><td>密碼存在於已知外洩清單</td></tr><tr><td>2016</td><td><code translate="no">AUTH_MFA_SETUP_REQUIRED</code></td><td>403</td><td>高權限流程尚未完成 MFA 設定</td></tr><tr><td>2017</td><td><code translate="no">AUTH_PRIVILEGED_RECOVERY_INVALID</code></td><td>401</td><td>高權限 MFA 復原請求無效</td></tr></tbody></table></div>
-<h2 id="13-最小串接檢查">13. 最小串接檢查</h2>
+<h2 id="12-错误码">12. 错误码</h2>
+<div class="table-wrap"><table><thead><tr><th>id</th><th>code</th><th>HTTP</th><th>说明</th></tr></thead><tbody><tr><td>1000</td><td><code translate="no">COMMON_INTERNAL_ERROR</code></td><td>500</td><td>内部错误，凭 <code translate="no">trace_id</code> 回报</td></tr><tr><td>1001</td><td><code translate="no">COMMON_VALIDATION_FAILED</code></td><td>422</td><td>JSON、栏位、型别或限制不符</td></tr><tr><td>1002</td><td><code translate="no">COMMON_NOT_FOUND</code></td><td>404</td><td>资源或路径不存在</td></tr><tr><td>1003</td><td><code translate="no">COMMON_RATE_LIMITED</code></td><td>429</td><td>请依 <code translate="no">Retry-After</code> 退避</td></tr><tr><td>1004</td><td><code translate="no">COMMON_IDEMPOTENCY_CONFLICT</code></td><td>409</td><td>唯一资源已存在</td></tr><tr><td>1005</td><td><code translate="no">COMMON_FORBIDDEN</code></td><td>403</td><td>已验证但权限不足</td></tr><tr><td>2001</td><td><code translate="no">AUTH_INVALID_CREDENTIALS</code></td><td>401</td><td>帐号或密码错误</td></tr><tr><td>2002</td><td><code translate="no">AUTH_ACCOUNT_DISABLED</code></td><td>403</td><td>帐号停用</td></tr><tr><td>2003</td><td><code translate="no">AUTH_ACCOUNT_LOCKED</code></td><td>423</td><td>多次登入失败后暂时锁定</td></tr><tr><td>2004</td><td><code translate="no">AUTH_MFA_REQUIRED</code></td><td>401</td><td>流程需要 MFA</td></tr><tr><td>2005</td><td><code translate="no">AUTH_MFA_INVALID_CODE</code></td><td>401</td><td>TOTP 或 challenge 无效</td></tr><tr><td>2006</td><td><code translate="no">AUTH_MFA_ALREADY_ENABLED</code></td><td>409</td><td>MFA 已启用</td></tr><tr><td>2007</td><td><code translate="no">AUTH_RECOVERY_CODE_INVALID</code></td><td>401</td><td>Recovery Code 无效或已使用</td></tr><tr><td>2008</td><td><code translate="no">AUTH_REFRESH_INVALID</code></td><td>401</td><td>Refresh Token 无效或过期</td></tr><tr><td>2009</td><td><code translate="no">AUTH_REFRESH_REUSED</code></td><td>401</td><td>侦测到 Refresh Token 重用</td></tr><tr><td>2010</td><td><code translate="no">AUTH_TOKEN_EXPIRED</code></td><td>401</td><td>Access Token 已过期</td></tr><tr><td>2011</td><td><code translate="no">AUTH_TOKEN_INVALID</code></td><td>401</td><td>JWT、API Key 或 Bearer 格式无效</td></tr><tr><td>2012</td><td><code translate="no">AUTH_TOKEN_REVOKED</code></td><td>401</td><td>Token 已紧急撤销</td></tr><tr><td>2013</td><td><code translate="no">AUTH_PLATFORM_UNKNOWN</code></td><td>400</td><td>Platform code 无法解析、未知或停权</td></tr><tr><td>2014</td><td><code translate="no">AUTH_RECOVERY_TOKEN_INVALID</code></td><td>401</td><td>Email／密码复原 Token 无效、过期或已使用</td></tr><tr><td>2015</td><td><code translate="no">AUTH_PASSWORD_COMPROMISED</code></td><td>422</td><td>密码存在于已知外泄清单</td></tr><tr><td>2016</td><td><code translate="no">AUTH_MFA_SETUP_REQUIRED</code></td><td>403</td><td>高权限流程尚未完成 MFA 设定</td></tr><tr><td>2017</td><td><code translate="no">AUTH_PRIVILEGED_RECOVERY_INVALID</code></td><td>401</td><td>高权限 MFA 复原请求无效</td></tr></tbody></table></div>
+<h2 id="13-最小串接检查">13. 最小串接检查</h2>
 <pre><code class="language-bash"># 存活
 curl https://identity.lifeintent.app/livez
 
@@ -523,13 +507,13 @@ curl https://identity.lifeintent.app/realms/&lt;slug&gt;/.well-known/openid-conf
 # /v1 JWKS
 curl https://identity.lifeintent.app/v1/.well-known/jwks.json \
   -H &quot;X-Session-Platform-Code: &lt;platform_code&gt;&quot;</code></pre>
-<p>若上述請求成功，接著依使用情境選擇：</p>
+<p>若上述请求成功，接著依使用情境选择：</p>
 <ul>
-<li>標準第三方登入：OAuth Authorization Code + PKCE。</li>
-<li>自家平台帳密登入：<code translate="no">POST /v1/auth/login</code>。</li>
-<li>後端帳號供應：<code translate="no">POST /v1/internal/accounts</code>。</li>
+<li>标准第三方登入：OAuth Authorization Code + PKCE。</li>
+<li>自家平台帐密登入：<code translate="no">POST /v1/auth/login</code>。</li>
+<li>后端帐号供应：<code translate="no">POST /v1/internal/accounts</code>。</li>
 </ul>
-<p>完整端到端流程另見 <code translate="no">INTEGRATION.md</code>。</p><footer>Identity Service 公開 API 文件 · 更新時間：2026-07-20（Asia/Taipei）</footer></main>
+<p>完整端到端流程另见 <code translate="no">INTEGRATION.md</code>。</p><footer>Identity Service 公开 API 文档 · 更新时间：2026-07-20（Asia/Taipei）</footer></main>
 </div>
 <script>
 document.querySelectorAll("[data-locale]").forEach(function (link) {

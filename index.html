@@ -534,7 +534,7 @@ nav .links a:hover{color:var(--ink)}
 <!-- ============ DOCUMENTATION ============ -->
 <section id="docs">
   <h2 class="rv"><span class="tag">DOCS</span>開發文件</h2>
-  <p class="sub rv">工程師可直接閱讀完整 HTML API 說明；也能下載同內容的 Markdown，交給 AI 代理人或開發工具離線使用。</p>
+  <p class="sub rv">工程師可直接閱讀完整 HTML API 說明；支援繁體中文、简体中文與 English，首次開啟時依瀏覽器語言選擇，也能下載同語系 Markdown 供離線使用。</p>
   <div class="grid c3">
     <a class="card doc-card rv" href="api.html">
       <span class="ico">📖</span><h3>完整 API 說明</h3>
@@ -567,6 +567,7 @@ nav .links a:hover{color:var(--ink)}
       <li>註冊採同 Realm／來源與 Realm 全域共享限流；驗證及復原寄信採每帳號、每用途冷卻與配額。</li>
       <li>成功重寄會使舊 Token 失效；完成 Email 驗證時以單一交易更新 Email、Required Action 與帳號狀態。</li>
       <li>SES 的 Bounce／Complaint 事件會將目的信箱加入抑制名單，避免對無效或投訴地址重複寄送。</li>
+      <li>API 文件新增繁體中文、简体中文與 English，依瀏覽器語言自動選擇，並記住使用者手動切換的偏好。</li>
     </ul>
     <p class="change-impact"><strong>接入方影響：</strong>需要自助註冊的 member Realm 可呼叫新端點；遇到 <code>429 COMMON_RATE_LIMITED</code> 時應遵守 <code>Retry-After</code>，不得立即重試。</p>
   </article>

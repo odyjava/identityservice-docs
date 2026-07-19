@@ -8,8 +8,48 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "API.md"
-TARGET = ROOT / "api.html"
+
+LOCALES = (
+    {
+        "source": "API.md",
+        "target": "api.html",
+        "lang": "zh-Hant",
+        "title": "Identity Service API 文件",
+        "description": "Identity Service 公開 API 文件：Headers、Payload、Response、錯誤碼與安全規範",
+        "home": "首頁",
+        "quick": "快速上手",
+        "quick_file": "api.html#13-最小串接檢查",
+        "download": "下載 API.md",
+        "toc": "文件目錄",
+        "footer": "Identity Service 公開 API 文件 · 更新時間：2026-07-20（Asia/Taipei）",
+    },
+    {
+        "source": "API.zh-Hans.md",
+        "target": "api.zh-Hans.html",
+        "lang": "zh-Hans",
+        "title": "Identity Service API 文档",
+        "description": "Identity Service 公开 API 文档：Headers、Payload、Response、错误码与安全规范",
+        "home": "首页",
+        "quick": "快速入门",
+        "quick_file": "api.zh-Hans.html#13-最小串接检查",
+        "download": "下载 API.zh-Hans.md",
+        "toc": "文档目录",
+        "footer": "Identity Service 公开 API 文档 · 更新时间：2026-07-20（Asia/Taipei）",
+    },
+    {
+        "source": "API.en.md",
+        "target": "api.en.html",
+        "lang": "en",
+        "title": "Identity Service API Documentation",
+        "description": "Identity Service public API documentation covering headers, payloads, responses, error codes, and security requirements",
+        "home": "Home",
+        "quick": "Quick start",
+        "quick_file": "api.en.html#13-minimum-integration-checklist",
+        "download": "Download API.en.md",
+        "toc": "Contents",
+        "footer": "Identity Service public API documentation · Updated: 2026-07-20 (Asia/Taipei)",
+    },
+)
 
 
 def slugify(text: str) -> str:
@@ -20,7 +60,7 @@ def slugify(text: str) -> str:
 
 def inline(text: str) -> str:
     escaped = html.escape(text, quote=False)
-    escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
+    escaped = re.sub(r"`([^`]+)`", r'<code translate="no">\1</code>', escaped)
     escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
     escaped = re.sub(
         r"\[([^\]]+)\]\(([^)]+)\)",
@@ -170,19 +210,56 @@ def render_markdown(source: str) -> tuple[str, str]:
     return "\n".join(out), "\n".join(toc)
 
 
-def page(body: str, toc: str) -> str:
+def page(body: str, toc: str, locale: dict[str, str]) -> str:
+    download_file = locale["source"]
+    current = locale["lang"]
+    detector = ""
+    if current == "zh-Hant":
+        detector = """<script>
+(function () {
+  var key = "identityservice-docs-language";
+  var saved = null;
+  try { saved = localStorage.getItem(key); } catch (_) {}
+  var languages = saved ? [saved] : (navigator.languages || [navigator.language || ""]);
+  var selected = "en";
+  for (var i = 0; i < languages.length; i += 1) {
+    var language = String(languages[i] || "").toLowerCase();
+    if (/^zh-(hans|cn|sg|my)/.test(language)) { selected = "zh-Hans"; break; }
+    if (/^zh-(hant|tw|hk|mo)/.test(language) || language === "zh") { selected = "zh-Hant"; break; }
+    if (/^en(?:-|$)/.test(language)) { selected = "en"; break; }
+  }
+  var target = selected === "zh-Hans" ? "api.zh-Hans.html" : selected === "en" ? "api.en.html" : "";
+  if (target) location.replace(target + location.search + location.hash);
+})();
+</script>"""
+    language_links = []
+    for lang, href, label in (
+        ("zh-Hant", "api.html", "繁體中文"),
+        ("zh-Hans", "api.zh-Hans.html", "简体中文"),
+        ("en", "api.en.html", "English"),
+    ):
+        active = ' aria-current="page"' if lang == current else ""
+        language_links.append(
+            f'<a href="{href}" hreflang="{lang}" data-locale="{lang}"{active}>{label}</a>'
+        )
+    language_switcher = "".join(language_links)
     return f"""<!doctype html>
-<html lang="zh-Hant">
+<html lang="{locale['lang']}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Identity Service 公開 API 文件：Headers、Payload、Response、錯誤碼與安全規範">
-<title>Identity Service API 文件</title>
+<meta name="description" content="{locale['description']}">
+<link rel="alternate" hreflang="zh-Hant" href="api.html">
+<link rel="alternate" hreflang="zh-Hans" href="api.zh-Hans.html">
+<link rel="alternate" hreflang="en" href="api.en.html">
+<link rel="alternate" hreflang="x-default" href="api.html">
+<title>{locale['title']}</title>
+{detector}
 <style>
 :root{{--bg:#07101f;--panel:#0d192d;--panel2:#111f36;--ink:#edf4ff;--muted:#9db0ca;--brand:#62d4ff;--accent:#8c7bff;--line:#263a57;--ok:#3ddc97;--post:#b79aff;--get:#62d4ff;--patch:#ffbf69}}
 *{{box-sizing:border-box}}html{{scroll-behavior:smooth}}body{{margin:0;background:linear-gradient(135deg,#07101f,#0a1325 60%,#10162b);color:var(--ink);font:15px/1.72 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}}
 a{{color:var(--brand);text-decoration:none}}a:hover{{text-decoration:underline}}code{{font-family:"SFMono-Regular",Consolas,monospace}}
-.top{{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:13px 24px;background:rgba(7,16,31,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}}.brand{{font-weight:800;color:var(--ink)}}.brand span{{color:var(--brand)}}.top nav{{display:flex;gap:18px;align-items:center}}.download{{padding:8px 13px;border:1px solid var(--brand);border-radius:9px}}
+.top{{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:13px 24px;background:rgba(7,16,31,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}}.brand{{font-weight:800;color:var(--ink)}}.brand span{{color:var(--brand)}}.top nav{{display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:flex-end}}.download{{padding:8px 13px;border:1px solid var(--brand);border-radius:9px}}.language{{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}}.language a{{padding:5px 8px;color:var(--muted);font-size:.82rem}}.language a[aria-current="page"]{{background:var(--brand);color:#06101d;text-decoration:none}}
 .layout{{max-width:1440px;margin:auto;display:grid;grid-template-columns:290px minmax(0,920px);gap:36px;padding:34px 28px 80px;justify-content:center}}
 .toc{{position:sticky;top:86px;height:calc(100vh - 110px);overflow:auto;padding:12px 18px 24px;border-right:1px solid var(--line)}}.toc h2{{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}}.toc a{{display:block;color:var(--muted);padding:5px 0;line-height:1.35}}.toc a:hover{{color:var(--brand)}}.toc-l3{{padding-left:14px!important;font-size:.86rem}}
 main{{min-width:0}}h1{{font-size:clamp(2.1rem,5vw,3.8rem);line-height:1.08;margin:10px 0 26px;background:linear-gradient(90deg,#fff,var(--brand));-webkit-background-clip:text;color:transparent}}h2{{font-size:1.75rem;margin:64px 0 20px;padding-top:18px;border-top:1px solid var(--line)}}h3{{font-size:1.12rem;margin:38px 0 15px;padding:14px 17px;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px}}h4{{margin:26px 0 8px;color:var(--brand)}}p,li{{color:#d4e0ef}}blockquote{{margin:20px 0;padding:15px 18px;background:rgba(98,212,255,.08);border-left:4px solid var(--brand);border-radius:7px;color:#dcecff}}hr{{border:0;border-top:1px solid var(--line);margin:36px 0}}
@@ -194,20 +271,30 @@ pre{{overflow:auto;padding:18px;background:#030913;border:1px solid var(--line);
 <body>
 <header class="top">
   <a class="brand" href="index.html">Identity<span>Service</span></a>
-  <nav><a href="index.html">首頁</a><a href="INTEGRATION.md">快速上手</a><a class="download" href="API.md" download>下載 API.md</a></nav>
+  <nav><a href="index.html">{locale['home']}</a><a href="{locale['quick_file']}">{locale['quick']}</a><span class="language" aria-label="Language">{language_switcher}</span><a class="download" href="{download_file}" download>{locale['download']}</a></nav>
 </header>
 <div class="layout">
-  <aside class="toc" aria-label="API 文件目錄"><h2>文件目錄</h2>{toc}</aside>
-  <main>{body}<footer>Identity Service 公開 API 文件 · 更新時間：2026-07-20（Asia/Taipei）</footer></main>
+  <aside class="toc" aria-label="API"><h2>{locale['toc']}</h2>{toc}</aside>
+  <main>{body}<footer>{locale['footer']}</footer></main>
 </div>
+<script>
+document.querySelectorAll("[data-locale]").forEach(function (link) {{
+  link.addEventListener("click", function () {{
+    try {{ localStorage.setItem("identityservice-docs-language", link.getAttribute("data-locale")); }} catch (_) {{}}
+  }});
+}});
+</script>
 </body>
 </html>
 """
 
 
 def main() -> None:
-    body, toc = render_markdown(SOURCE.read_text(encoding="utf-8"))
-    TARGET.write_text(page(body, toc), encoding="utf-8")
+    for locale in LOCALES:
+        source = ROOT / locale["source"]
+        target = ROOT / locale["target"]
+        body, toc = render_markdown(source.read_text(encoding="utf-8"))
+        target.write_text(page(body, toc, locale), encoding="utf-8")
 
 
 if __name__ == "__main__":
